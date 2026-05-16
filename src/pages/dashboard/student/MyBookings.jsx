@@ -57,7 +57,18 @@ export default function MyBookings({ noLayout = false }) {
     };
 
     const handlePayNow = async (bookingId) => {
-        toast.info('Please contact the owner directly to make the physical payment. Once paid, the owner will confirm your booking.');
+        toast((t) => (
+            <div className="flex flex-col gap-2">
+                <span className="font-bold text-[#0B1A30]">Online Payment Coming Soon! 🚀</span>
+                <span className="text-xs text-gray-500">We are currently integrating PayFast for secure online transactions. For now, please use the Physical Payment option to secure your bed.</span>
+                <button 
+                    onClick={() => toast.dismiss(t.id)}
+                    className="mt-2 px-4 py-2 bg-[#0B1A30] text-white text-[10px] font-black uppercase rounded-lg"
+                >
+                    Got it
+                </button>
+            </div>
+        ), { duration: 6000, position: 'top-center', style: { borderRadius: '20px', padding: '20px' } });
     };
 
     const ROOM_TYPE_LABELS = {
@@ -137,9 +148,13 @@ export default function MyBookings({ noLayout = false }) {
                                                         <FiCheck size={20} />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <p className="text-[11px] font-black text-emerald-900 uppercase tracking-widest mb-1">Request Approved! Pay Owner Physically</p>
+                                                        <p className="text-[11px] font-black text-emerald-900 uppercase tracking-widest mb-1">Booking Approved! Choose Payment Method</p>
                                                         <p className="text-[12px] text-emerald-700 font-medium leading-relaxed">
-                                                            Your request is approved. Please pay the first month's rent (PKR {booking.monthlyPrice?.toLocaleString()}) to the owner directly to finalize your bed.
+                                                            Your request is approved. To secure your bed, you can either:
+                                                            <br/><br/>
+                                                            1. <b>Pay Physically:</b> Pay PKR {booking.monthlyPrice?.toLocaleString()} to the owner directly (Contact details below).
+                                                            <br/>
+                                                            2. <b>Pay Online:</b> Pay via PayFast Gateway (Integration in progress - Coming Soon).
                                                         </p>
                                                         <div className="mt-3 pt-3 border-t border-emerald-100/50 flex flex-wrap gap-4">
                                                             <div>
@@ -226,14 +241,20 @@ export default function MyBookings({ noLayout = false }) {
                                         )}
 
                                         {booking.status === 'approved' && (
-                                            <div className="mt-3">
+                                            <div className="mt-4 flex flex-wrap gap-3">
                                                 <Link
                                                     to="/dashboard/student"
                                                     state={{ activeTab: 'messages' }}
-                                                    className="inline-flex px-6 py-2.5 bg-[#0B1A30] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-800 transition-all shadow-md shadow-[#0B1A30]/10"
+                                                    className="inline-flex px-6 py-2.5 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/10"
                                                 >
-                                                    Message Owner for Payment
+                                                    Pay Physically (Contact Owner)
                                                 </Link>
+                                                <button
+                                                    onClick={() => handlePayNow(booking.id)}
+                                                    className="px-6 py-2.5 bg-white text-[#0B1A30] text-[10px] font-black uppercase tracking-widest rounded-xl border border-gray-200 hover:border-[#0B1A30] transition-all shadow-sm"
+                                                >
+                                                    Pay Online (Coming Soon)
+                                                </button>
                                             </div>
                                         )}
                                     </div>

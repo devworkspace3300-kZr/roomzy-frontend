@@ -26,6 +26,7 @@ export default function Home() {
         // Fetch featured hostels
         api.get('/hostels')
             .then(res => {
+                const hostels = Array.isArray(res.data?.data) ? res.data.data : (Array.isArray(res.data) ? res.data : []);
                 const combined = [...hostels];
                 setFeaturedHostels(combined.slice(0, 6));
 
