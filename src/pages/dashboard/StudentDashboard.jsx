@@ -52,6 +52,11 @@ export default function StudentDashboard() {
     useEffect(() => {
         if (location.state?.activeTab) {
             setActiveTab(location.state.activeTab);
+            
+            if (location.state.activeTab === 'messages' && location.state.initialMessage) {
+                setNewMessage(location.state.initialMessage);
+            }
+            
             window.history.replaceState({}, document.title);
         }
     }, [location.state]);
@@ -81,7 +86,26 @@ export default function StudentDashboard() {
         setLoadingConversations(true);
         try {
             const response = await api.get('/chat/conversations');
-            setConversations(response.data?.data || []);
+            const data = response.data?.data || [];
+            setConversations(data);
+            
+            // Auto-select conversation if we have a targetOwnerId from state
+            if (location.state?.targetOwnerId) {
+                const existingConv = data.find(c => c.ownerId === location.state.targetOwnerId);
+                if (existingConv) {
+                    setSelectedConversation(existingConv);
+                    fetchMessages(existingConv.id);
+                } else {
+                    // Start a temporary conversation object if not found
+                    setSelectedConversation({
+                        id: 'new',
+                        ownerId: location.state.targetOwnerId,
+                        owner: { fullName: 'Hostel Owner' },
+                        hostel: { name: location.state.hostelName || 'Hostel' }
+                    });
+                    setChatMessages([]);
+                }
+            }
         } catch (error) {
             toast.error('Failed to load conversations');
         } finally {
@@ -101,15 +125,26 @@ export default function StudentDashboard() {
     const handleSendMessage = async () => {
         if (!newMessage.trim() || !selectedConversation) return;
         try {
-            await api.post('/chat/direct', {
-                conversationId: selectedConversation.id,
-                recipientId: selectedConversation.ownerId, // null for admin
-                hostelId: selectedConversation.hostelId,
+            const payload = {
+                recipientId: selectedConversation.ownerId,
                 content: newMessage
-            });
+            };
+            
+            // If it's a new conversation, we don't have conversationId yet
+            if (selectedConversation.id !== 'new') {
+                payload.conversationId = selectedConversation.id;
+            }
+
+            await api.post('/chat/direct', payload);
             setNewMessage('');
-            fetchMessages(selectedConversation.id);
-            fetchConversations();
+            
+            if (selectedConversation.id === 'new') {
+                // Refresh everything to get the real conversation ID
+                fetchConversations();
+            } else {
+                fetchMessages(selectedConversation.id);
+                fetchConversations();
+            }
         } catch (error) {
             toast.error('Failed to send message');
         }

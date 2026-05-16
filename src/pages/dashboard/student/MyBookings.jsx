@@ -244,7 +244,12 @@ export default function MyBookings({ noLayout = false }) {
                                             <div className="mt-4 flex flex-wrap gap-3">
                                                 <Link
                                                     to="/dashboard/student"
-                                                    state={{ activeTab: 'messages' }}
+                                                    state={{ 
+                                                        activeTab: 'messages', 
+                                                        targetOwnerId: booking.hostel?.ownerId,
+                                                        hostelName: booking.hostel?.name,
+                                                        initialMessage: `Hi, my booking for ${booking.hostel?.name} was approved! I'd like to arrange the physical payment of PKR ${booking.monthlyPrice?.toLocaleString()}.`
+                                                    }}
                                                     className="inline-flex px-6 py-2.5 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/10"
                                                 >
                                                     Pay Physically (Contact Owner)
