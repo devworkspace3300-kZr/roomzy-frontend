@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiSearch, FiMapPin, FiShield, FiCheckCircle, FiUsers, FiArrowRight, FiStar } from 'react-icons/fi';
 import { HiCheckBadge } from 'react-icons/hi2';
-import { CITIES, INSTITUTIONS, AMENITIES, ROOM_TYPES, PRICE_RANGES, HOW_IT_WORKS_STEPS, TESTIMONIALS, STATS, POPULAR_AREAS, UNIVERSITY_FEATURES, ROOMZY_SERVICES, STATIC_HOSTELS } from '../../constants';
+import { CITIES, INSTITUTIONS, AMENITIES, ROOM_TYPES, PRICE_RANGES, HOW_IT_WORKS_STEPS, TESTIMONIALS, STATS, POPULAR_AREAS, UNIVERSITY_FEATURES, ROOMZY_SERVICES } from '../../constants';
 import api from '../../api/axios';
 import HostelCard from '../../components/ui/HostelCard';
 import Button from '../../components/ui/Button';
@@ -26,9 +26,7 @@ export default function Home() {
         // Fetch featured hostels
         api.get('/hostels')
             .then(res => {
-                const hostels = Array.isArray(res.data?.data) ? res.data.data : (Array.isArray(res.data) ? res.data : []);
-                // Augment with static hostels for PayFast approval
-                const combined = [...hostels, ...STATIC_HOSTELS];
+                const combined = [...hostels];
                 setFeaturedHostels(combined.slice(0, 6));
 
                 // Calculate counts for cities and areas
@@ -44,17 +42,9 @@ export default function Home() {
                 setAreaCounts(aCounts);
             })
             .catch(() => {
-                setFeaturedHostels(STATIC_HOSTELS.slice(0, 6));
-                const cCounts = {};
-                const aCounts = {};
-                STATIC_HOSTELS.forEach(h => {
-                    const c = h.city?.toLowerCase();
-                    const a = h.area?.toLowerCase();
-                    if (c) cCounts[c] = (cCounts[c] || 0) + 1;
-                    if (a) aCounts[a] = (aCounts[a] || 0) + 1;
-                });
-                setCityCounts(cCounts);
-                setAreaCounts(aCounts);
+                setFeaturedHostels([]);
+                setCityCounts({});
+                setAreaCounts({});
             })
             .finally(() => setFeaturedLoading(false));
 
@@ -68,7 +58,7 @@ export default function Home() {
                 
                 const instsRaw = instRes.data?.data || instRes.data || [];
                 const hostelsRaw = hostRes.data?.data || hostRes.data || [];
-                const allHostels = [...hostelsRaw, ...STATIC_HOSTELS];
+                const allHostels = [...hostelsRaw];
 
                 // Create cityId -> city name mapping from hostels
                 const cityMap = {};

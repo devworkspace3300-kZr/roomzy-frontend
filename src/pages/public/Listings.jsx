@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiFilter, FiX } from 'react-icons/fi';
-import { CITIES, AMENITIES, ROOM_TYPES, PRICE_RANGES, POPULAR_AREAS, INSTITUTIONS, UNIVERSITY_FEATURES, STATIC_HOSTELS } from '../../constants';
+import { CITIES, AMENITIES, ROOM_TYPES, PRICE_RANGES, POPULAR_AREAS, INSTITUTIONS, UNIVERSITY_FEATURES } from '../../constants';
 import api from '../../api/axios';
 import HostelCard from '../../components/ui/HostelCard';
 import Button from '../../components/ui/Button';
@@ -48,7 +48,7 @@ export default function Listings() {
             const amenities = amRes.data?.data || amRes.data || [];
             const hostelsRaw = hostRes.data?.data || hostRes.data || [];
             
-            const allHostels = [...hostelsRaw, ...STATIC_HOSTELS];
+            const allHostels = [...hostelsRaw];
             
             // Create cityId -> city name mapping from hostels
             const cityMap = {};
@@ -139,29 +139,7 @@ export default function Listings() {
             const response = await api.get(`/hostels?${params.toString()}`);
             const apiData = Array.isArray(response.data) ? response.data : (response.data?.data || []);
             
-            // Augment with filtered static hostels for PayFast
-            const filteredStatic = STATIC_HOSTELS.filter(h => {
-                const sCity = filters.city?.toLowerCase();
-                const hCity = h.city?.toLowerCase();
-                if (sCity && hCity !== sCity && !hCity.includes(sCity)) return false;
-
-                const sInst = filters.institute?.toLowerCase();
-                const hInst = h.nearestInstituteId?.toLowerCase();
-                if (sInst && hInst !== sInst) {
-                    // Check if current institute ID (UUID) maps back to a static slug
-                    const instObj = dynamicInstitutions.find(di => di.id === filters.institute);
-                    const instName = instObj?.name?.toLowerCase();
-                    const staticMatch = INSTITUTIONS.find(si => si.id === h.nearestInstituteId);
-                    const staticName = staticMatch?.name?.toLowerCase();
-                    
-                    if (!instName || !staticName || instName !== staticName) return false;
-                }
-                
-                if (filters.genderType && h.genderType !== filters.genderType) return false;
-                return true;
-            });
-
-            let data = [...apiData, ...filteredStatic];
+            let data = [...apiData];
             
             // Client-side sort
             if (filters.sortBy === 'price_low') data = [...data].sort((a, b) => (a.startingPrice || 0) - (b.startingPrice || 0));
