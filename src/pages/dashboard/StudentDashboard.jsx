@@ -131,30 +131,7 @@ export default function StudentDashboard() {
     };
 
     const handlePayNow = async (bookingId) => {
-        try {
-            toast.loading('Preparing secure payment...', { id: 'payment' });
-            const response = await api.post(`/payments/initiate/${bookingId}`);
-            const { url, params } = response.data;
-            
-            // Create a temporary form and submit it to redirect to PayFast
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = url;
-            
-            Object.entries(params).forEach(([key, value]) => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = key;
-                input.value = value;
-                form.appendChild(input);
-            });
-            
-            document.body.appendChild(form);
-            toast.dismiss('payment');
-            form.submit();
-        } catch (error) {
-            toast.error('Failed to initiate payment. Please try again.', { id: 'payment' });
-        }
+        toast.info('Please contact the owner directly for physical payment. Once paid, they will confirm your booking.');
     };
 
 
@@ -216,7 +193,9 @@ export default function StudentDashboard() {
                                         <div className="flex-1 text-center md:text-left">
                                             <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-2">
                                                 <span className="px-3 py-1 bg-white/10 border border-white/10 rounded-full text-[9px] font-black text-white uppercase tracking-widest">
-                                                    {activeStay?.status === 'active_stay' ? 'Active Tenancy' : 'Booking Approved'}
+                                                    {activeStay?.status === 'active_stay' ? 'Active Tenancy' : 
+                                                     activeStay?.status === 'approved' ? 'Reserved (Awaiting Payment)' : 
+                                                     activeStay?.status === 'confirmed' ? 'Booking Confirmed' : activeStay?.status}
                                                 </span>
                                                 <span className="text-emerald-400 text-[10px] font-black uppercase tracking-widest">Verified ✓</span>
                                             </div>
@@ -226,13 +205,22 @@ export default function StudentDashboard() {
                                             </p>
                                             
                                             <div className="flex flex-wrap gap-3">
-                                                <button 
-                                                    onClick={() => handlePayNow(activeStay.id)}
-                                                    className="px-6 py-2.5 bg-white text-[#0B1A30] font-black text-[10px] uppercase tracking-widest rounded-xl shadow-lg transition-all hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    disabled={activeStay.status === 'confirmed' || activeStay.status === 'active_stay'}
-                                                >
-                                                    {activeStay.status === 'approved' ? 'Pay to Confirm' : activeStay.status === 'confirmed' ? 'Paid' : 'Pay Rent'}
-                                                </button>
+                                                {activeStay.status === 'approved' ? (
+                                                    <Link 
+                                                        to="/dashboard/student" 
+                                                        state={{ activeTab: 'messages' }}
+                                                        className="px-6 py-2.5 bg-emerald-500 text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-lg transition-all hover:bg-emerald-600 hover:-translate-y-1 active:scale-95"
+                                                    >
+                                                        Pay Owner Physically
+                                                    </Link>
+                                                ) : (
+                                                    <button 
+                                                        disabled
+                                                        className="px-6 py-2.5 bg-white/10 text-white/50 font-black text-[10px] uppercase tracking-widest rounded-xl border border-white/10 cursor-not-allowed"
+                                                    >
+                                                        {activeStay.status === 'confirmed' ? 'Payment Confirmed' : 'Active Tenancy'}
+                                                    </button>
+                                                )}
                                                 <button className="px-6 py-2.5 text-white font-black text-[10px] uppercase tracking-widest rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 transition-all flex items-center gap-2 active:scale-95 group/btn">
                                                     <FiMessageCircle className="group-hover/btn:rotate-12 transition-transform" size={16} /> Support
                                                 </button>

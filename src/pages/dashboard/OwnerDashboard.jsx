@@ -113,6 +113,21 @@ export default function OwnerDashboard() {
         }
     };
 
+    const handleConfirmPayment = async (id) => {
+        if (!window.confirm('Confirm that you have received the physical payment? This will finalize the booking and occupy one bed.')) return;
+        
+        setStatusUpdating(id);
+        try {
+            await api.patch(`/bookings/owner/bookings/${id}/confirm-payment`);
+            setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'confirmed' } : b));
+            toast.success('Payment confirmed! Booking is now active.');
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to confirm payment');
+        } finally {
+            setStatusUpdating(null);
+        }
+    };
+
     const fetchHostelRooms = async (hostelId) => {
         setLoadingRooms(true);
         try {
@@ -179,6 +194,18 @@ export default function OwnerDashboard() {
     const verified   = myHostels.filter(h => h.status === 'verified').length;
     const pending    = myHostels.filter(h => h.status === 'submitted').length;
     const rejected   = myHostels.filter(h => h.status === 'rejected').length;
+
+    const getTimeRemaining = (approvedAt) => {
+        if (!approvedAt) return null;
+        const deadline = new Date(approvedAt);
+        deadline.setHours(deadline.getHours() + 24);
+        const now = new Date();
+        const diff = deadline - now;
+        if (diff <= 0) return 'Expired';
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        return `${hours}h ${mins}m`;
+    };
 
     return (
         <DashboardLayout tabs={OWNER_TABS} activeTab={activeTab} setActiveTab={setActiveTab}>
@@ -392,8 +419,11 @@ export default function OwnerDashboard() {
                                                     <div className="w-10 h-10 rounded-xl bg-[#0B1A30]/5 flex items-center justify-center text-[#0B1A30] font-black text-xs">
                                                         {req.student?.fullName?.charAt(0)}
                                                     </div>
-                                                    <div className="min-w-0">
-                                                        <p className="text-[13px] font-black text-[#0B1A30] tracking-tight truncate">{req.student?.fullName}</p>
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex justify-between items-start">
+                                                            <p className="text-[13px] font-black text-[#0B1A30] tracking-tight truncate">{req.student?.fullName}</p>
+                                                            <span className="text-[8px] font-black text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded uppercase">New</span>
+                                                        </div>
                                                         <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest truncate">{req.hostel?.name}</p>
                                                     </div>
                                                 </div>
@@ -692,6 +722,21 @@ export default function OwnerDashboard() {
                                                         Approve Request
                                                     </button>
                                                 </>
+                                            )}
+                                            {req.status === 'approved' && (
+                                                <div className="flex items-center gap-4">
+                                                    <div className="text-right">
+                                                        <p className="text-[9px] font-black text-amber-500 uppercase tracking-widest">Deadline</p>
+                                                        <p className="text-xs font-black text-[#0B1A30]">{getTimeRemaining(req.approvedAt)}</p>
+                                                    </div>
+                                                    <button 
+                                                        onClick={() => handleConfirmPayment(req.id)}
+                                                        disabled={statusUpdating === req.id}
+                                                        className="px-6 py-2.5 rounded-xl bg-emerald-600 text-white text-[10px] font-black hover:bg-emerald-700 uppercase tracking-widest shadow-lg shadow-emerald-600/10 transition-all disabled:opacity-50"
+                                                    >
+                                                        Confirm Payment
+                                                    </button>
+                                                </div>
                                             )}
                                             {req.status === 'confirmed' && (
                                                 <button 

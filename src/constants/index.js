@@ -323,64 +323,64 @@ export const UNIVERSITY_FEATURES = [
     }
 ];
 
-export const STATIC_HOSTELS = [
-    {
-        id: 'static-1',
-        name: 'Al-Madina Executive Hostel',
-        city: 'Abbottabad',
-        area: 'Mandian',
-        fullAddress: 'Near Ayub Medical College, Mandian, Abbottabad',
-        genderType: 'male',
-        startingPrice: 8500,
-        averageRating: 4.8,
-        totalReviews: 12,
-        images: [{ imageUrl: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&q=80' }],
-        amenities: [{ name: 'WiFi', slug: 'wifi' }, { name: 'Generator', slug: 'generator' }, { name: 'Mess', slug: 'meals' }],
-        nearestInstituteId: 'amc'
-    },
-    {
-        id: 'static-2',
-        name: 'Safe Haven Girls Hostel',
-        city: 'Abbottabad',
-        area: 'Supply',
-        fullAddress: 'Opposite COMSATS University, Supply, Abbottabad',
-        genderType: 'female',
-        startingPrice: 12000,
-        averageRating: 4.9,
-        totalReviews: 24,
-        images: [{ imageUrl: 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=800&q=80' }],
-        amenities: [{ name: 'WiFi', slug: 'wifi' }, { name: 'AC', slug: 'ac' }, { name: 'Security', slug: 'security' }],
-        nearestInstituteId: 'comsats-abbottabad'
-    },
-    {
-        id: 'static-3',
-        name: 'Hazara Student Palace',
-        city: 'Mansehra',
-        area: 'Dhodial',
-        fullAddress: 'Main Gate, Hazara University, Dhodial, Mansehra',
-        genderType: 'male',
-        startingPrice: 7500,
-        averageRating: 4.5,
-        totalReviews: 8,
-        images: [{ imageUrl: 'https://images.unsplash.com/photo-1522771739844-649fb4afd0ff?w=800&q=80' }],
-        amenities: [{ name: 'WiFi', slug: 'wifi' }, { name: 'Parking', slug: 'parking' }],
-        nearestInstituteId: 'hazara'
-    },
-    {
-        id: 'static-4',
-        name: 'Mansehra Executive Residency',
-        city: 'Mansehra',
-        area: 'Ghazikot',
-        fullAddress: 'Sector A, Ghazikot Township, Mansehra',
-        genderType: 'male',
-        startingPrice: 15000,
-        averageRating: 5.0,
-        totalReviews: 5,
-        images: [{ imageUrl: 'https://images.unsplash.com/photo-1560185127-6ed189bf02f4?w=800&q=80' }],
-        amenities: [{ name: 'WiFi', slug: 'wifi' }, { name: 'AC', slug: 'ac' }, { name: 'Generator', slug: 'generator' }],
-        nearestInstituteId: 'mansehra-university'
-    }
-];
+// export const STATIC_HOSTELS = [
+//     {
+//         id: 'static-1',
+//         name: 'Al-Madina Executive Hostel',
+//         city: 'Abbottabad',
+//         area: 'Mandian',
+//         fullAddress: 'Near Ayub Medical College, Mandian, Abbottabad',
+//         genderType: 'male',
+//         startingPrice: 8500,
+//         averageRating: 4.8,
+//         totalReviews: 12,
+//         images: [{ imageUrl: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&q=80' }],
+//         amenities: [{ name: 'WiFi', slug: 'wifi' }, { name: 'Generator', slug: 'generator' }, { name: 'Mess', slug: 'meals' }],
+//         nearestInstituteId: 'amc'
+//     },
+//     {
+//         id: 'static-2',
+//         name: 'Safe Haven Girls Hostel',
+//         city: 'Abbottabad',
+//         area: 'Supply',
+//         fullAddress: 'Opposite COMSATS University, Supply, Abbottabad',
+//         genderType: 'female',
+//         startingPrice: 12000,
+//         averageRating: 4.9,
+//         totalReviews: 24,
+//         images: [{ imageUrl: 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=800&q=80' }],
+//         amenities: [{ name: 'WiFi', slug: 'wifi' }, { name: 'AC', slug: 'ac' }, { name: 'Security', slug: 'security' }],
+//         nearestInstituteId: 'comsats-abbottabad'
+//     },
+//     {
+//         id: 'static-3',
+//         name: 'Hazara Student Palace',
+//         city: 'Mansehra',
+//         area: 'Dhodial',
+//         fullAddress: 'Main Gate, Hazara University, Dhodial, Mansehra',
+//         genderType: 'male',
+//         startingPrice: 7500,
+//         averageRating: 4.5,
+//         totalReviews: 8,
+//         images: [{ imageUrl: 'https://images.unsplash.com/photo-1522771739844-649fb4afd0ff?w=800&q=80' }],
+//         amenities: [{ name: 'WiFi', slug: 'wifi' }, { name: 'Parking', slug: 'parking' }],
+//         nearestInstituteId: 'hazara'
+//     },
+//     {
+//         id: 'static-4',
+//         name: 'Mansehra Executive Residency',
+//         city: 'Mansehra',
+//         area: 'Ghazikot',
+//         fullAddress: 'Sector A, Ghazikot Township, Mansehra',
+//         genderType: 'male',
+//         startingPrice: 15000,
+//         averageRating: 5.0,
+//         totalReviews: 5,
+//         images: [{ imageUrl: 'https://images.unsplash.com/photo-1560185127-6ed189bf02f4?w=800&q=80' }],
+//         amenities: [{ name: 'WiFi', slug: 'wifi' }, { name: 'AC', slug: 'ac' }, { name: 'Generator', slug: 'generator' }],
+//         nearestInstituteId: 'mansehra-university'
+//     }
+// ];
 
 export const ROOMZY_SERVICES = [
     { id: 1, title: 'Verified Accommodation', desc: 'Secure and physically inspected hostels for students.', icon: 'shield' },

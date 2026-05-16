@@ -28,13 +28,21 @@ api.interceptors.response.use(
   (response) => response,  // Pass through successful responses
   (error) => {
     // Detailed error logging for debugging connectivity issues
-    console.error('❌ API Error:', {
-      url: error.config?.url,
-      method: error.config?.method,
-      status: error.response?.status,
-      message: error.message,
-      data: error.response?.data
-    });
+    console.group('❌ Roomzy API Error');
+    console.error('Message:', error.message);
+    console.error('URL:', error.config?.url);
+    console.error('Method:', error.config?.method?.toUpperCase());
+    
+    if (error.response) {
+      console.error('Status:', error.response.status);
+      console.error('Data:', error.response.data);
+    } else if (error.request) {
+      console.error('Request sent but no response received. Possible CORS or Network issue.');
+      console.error('Base URL:', error.config?.baseURL);
+    } else {
+      console.error('Error details:', error);
+    }
+    console.groupEnd();
 
     if (error.response?.status === 401 && !error.config?.url?.includes('/auth/login')) {
       // Token expired or invalid — clear everything and redirect to login
@@ -46,5 +54,6 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 
 export default api;

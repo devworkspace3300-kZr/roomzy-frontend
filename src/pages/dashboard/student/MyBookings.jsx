@@ -57,29 +57,7 @@ export default function MyBookings({ noLayout = false }) {
     };
 
     const handlePayNow = async (bookingId) => {
-        try {
-            toast.loading('Preparing secure payment...', { id: 'payment' });
-            const response = await api.post(`/payments/initiate/${bookingId}`);
-            const { url, params } = response.data;
-            
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = url;
-            
-            Object.entries(params).forEach(([key, value]) => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = key;
-                input.value = value;
-                form.appendChild(input);
-            });
-            
-            document.body.appendChild(form);
-            toast.dismiss('payment');
-            form.submit();
-        } catch (error) {
-            toast.error('Failed to initiate payment. Please try again.', { id: 'payment' });
-        }
+        toast.info('Please contact the owner directly to make the physical payment. Once paid, the owner will confirm your booking.');
     };
 
     const ROOM_TYPE_LABELS = {
@@ -154,13 +132,27 @@ export default function MyBookings({ noLayout = false }) {
                                             </div>
 
                                             {booking.status === 'approved' && (
-                                                <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-2xl flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shrink-0">
-                                                        <FiClock size={16} />
+                                                <div className="mb-4 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-start gap-4 shadow-sm">
+                                                    <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shrink-0 shadow-lg shadow-emerald-600/20">
+                                                        <FiCheck size={20} />
                                                     </div>
-                                                    <div>
-                                                        <p className="text-[10px] font-black text-blue-900 uppercase tracking-widest">Payment Required within 24h</p>
-                                                        <p className="text-[11px] text-blue-700 font-medium leading-tight">Pay now to secure your bed. This request will auto-expire if not paid.</p>
+                                                    <div className="flex-1">
+                                                        <p className="text-[11px] font-black text-emerald-900 uppercase tracking-widest mb-1">Request Approved! Pay Owner Physically</p>
+                                                        <p className="text-[12px] text-emerald-700 font-medium leading-relaxed">
+                                                            Your request is approved. Please pay the first month's rent (PKR {booking.monthlyPrice?.toLocaleString()}) to the owner directly to finalize your bed.
+                                                        </p>
+                                                        <div className="mt-3 pt-3 border-t border-emerald-100/50 flex flex-wrap gap-4">
+                                                            <div>
+                                                                <p className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">Owner Contact</p>
+                                                                <p className="text-xs font-black text-emerald-900">{booking.hostel?.owner?.fullName || 'Owner'}</p>
+                                                            </div>
+                                                            {booking.hostel?.owner?.phone && (
+                                                                <div>
+                                                                    <p className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">Phone / WhatsApp</p>
+                                                                    <p className="text-xs font-black text-emerald-900">{booking.hostel?.owner?.phone}</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             )}
@@ -235,12 +227,13 @@ export default function MyBookings({ noLayout = false }) {
 
                                         {booking.status === 'approved' && (
                                             <div className="mt-3">
-                                                <button
-                                                    onClick={() => handlePayNow(booking.id)}
-                                                    className="px-6 py-2.5 bg-[#0B1A30] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-800 transition-all shadow-md shadow-[#0B1A30]/10"
+                                                <Link
+                                                    to="/dashboard/student"
+                                                    state={{ activeTab: 'messages' }}
+                                                    className="inline-flex px-6 py-2.5 bg-[#0B1A30] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-800 transition-all shadow-md shadow-[#0B1A30]/10"
                                                 >
-                                                    Pay Now to Confirm
-                                                </button>
+                                                    Message Owner for Payment
+                                                </Link>
                                             </div>
                                         )}
                                     </div>

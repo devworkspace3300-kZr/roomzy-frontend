@@ -2,15 +2,17 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiOutlineMenu, HiOutlineX } from 'react-icons/hi';
-import { FiUser } from 'react-icons/fi';
+import { FiUser, FiLayout, FiLogOut } from 'react-icons/fi';
 import { NAV_LINKS } from '../../constants';
 import { APP_CONFIG } from '../../config';
+import { useAuth } from '../../context/AuthContext';
 import logo from '../../assets/logo.jpg';
 
 export default function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const location = useLocation();
+    const { isAuthenticated, user, logout } = useAuth();
 
     useEffect(() => {
         const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -69,23 +71,49 @@ export default function Navbar() {
                         })}
                     </div>
 
-                    {/* Auth Buttons */}
                     <div className="hidden lg:flex items-center gap-3">
-                        <Link
-                            to="/login"
-                            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${isScrolled || !isHome
-                                ? 'text-text-secondary hover:text-primary-600 hover:bg-primary-50'
-                                : 'text-white/90 hover:text-white hover:bg-white/10'
-                                }`}
-                        >
-                            Log In
-                        </Link>
-                        <Link
-                            to="/signup"
-                            className="px-5 py-2.5 text-sm font-semibold text-white rounded-xl gradient-primary shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-                        >
-                            Sign Up
-                        </Link>
+                        {isAuthenticated ? (
+                            <div className="flex items-center gap-3">
+                                <Link
+                                    to={user?.role === 'admin' ? '/dashboard/admin' : user?.role === 'owner' ? '/dashboard/owner' : '/dashboard/student'}
+                                    className={`flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-xl transition-all duration-200 ${isScrolled || !isHome
+                                        ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
+                                        : 'text-white bg-white/10 hover:bg-white/20'
+                                        }`}
+                                >
+                                    <FiLayout size={16} />
+                                    <span>My Account</span>
+                                </Link>
+                                <button
+                                    onClick={logout}
+                                    className={`p-2.5 rounded-xl transition-all duration-200 ${isScrolled || !isHome
+                                        ? 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+                                        : 'text-white/70 hover:text-white hover:bg-white/10'
+                                        }`}
+                                    title="Log Out"
+                                >
+                                    <FiLogOut size={18} />
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                <Link
+                                    to="/login"
+                                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${isScrolled || !isHome
+                                        ? 'text-text-secondary hover:text-primary-600 hover:bg-primary-50'
+                                        : 'text-white/90 hover:text-white hover:bg-white/10'
+                                        }`}
+                                >
+                                    Log In
+                                </Link>
+                                <Link
+                                    to="/signup"
+                                    className="px-5 py-2.5 text-sm font-semibold text-white rounded-xl gradient-primary shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                                >
+                                    Sign Up
+                                </Link>
+                            </>
+                        )}
                     </div>
 
                     {/* Mobile Toggle */}
@@ -126,18 +154,37 @@ export default function Navbar() {
                                 );
                             })}
                             <div className="pt-3 border-t border-border mt-3 flex flex-col gap-2">
-                                <Link
-                                    to="/login"
-                                    className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-text-secondary rounded-xl border border-border hover:border-primary-300 hover:text-primary-600 transition-colors"
-                                >
-                                    <FiUser size={16} /> Log In
-                                </Link>
-                                <Link
-                                    to="/signup"
-                                    className="flex items-center justify-center px-4 py-3 text-sm font-semibold text-white rounded-xl gradient-primary shadow-md"
-                                >
-                                    Sign Up
-                                </Link>
+                                {isAuthenticated ? (
+                                    <>
+                                        <Link
+                                            to={user?.role === 'admin' ? '/dashboard/admin' : user?.role === 'owner' ? '/dashboard/owner' : '/dashboard/student'}
+                                            className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-primary-600 bg-primary-50 rounded-xl"
+                                        >
+                                            <FiLayout size={18} /> My Account Portal
+                                        </Link>
+                                        <button
+                                            onClick={logout}
+                                            className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-red-500 bg-red-50 rounded-xl"
+                                        >
+                                            <FiLogOut size={18} /> Log Out
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Link
+                                            to="/login"
+                                            className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-text-secondary rounded-xl border border-border hover:border-primary-300 hover:text-primary-600 transition-colors"
+                                        >
+                                            <FiUser size={16} /> Log In
+                                        </Link>
+                                        <Link
+                                            to="/signup"
+                                            className="flex items-center justify-center px-4 py-3 text-sm font-semibold text-white rounded-xl gradient-primary shadow-md"
+                                        >
+                                            Sign Up
+                                        </Link>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </motion.div>

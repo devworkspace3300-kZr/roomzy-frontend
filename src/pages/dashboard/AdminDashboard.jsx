@@ -56,10 +56,13 @@ export default function AdminDashboard() {
     const [newUser, setNewUser] = useState({ fullName: '', email: '', phone: '', password: '', role: 'student' });
     const [creatingUser, setCreatingUser] = useState(false);
     const [createdCredentials, setCreatedCredentials] = useState(null);
+    const [userSearchTerm, setUserSearchTerm] = useState('');
+    const [userRoleFilter, setUserRoleFilter] = useState('all');
     
     // New States for Hostel Details
     const [selectedHostelDetails, setSelectedHostelDetails] = useState(null);
     const [isHostelEditModalOpen, setIsHostelEditModalOpen] = useState(false);
+    const [hostelSearchTerm, setHostelSearchTerm] = useState('');
     const [bookingFilter, setBookingFilter] = useState('all');
     
     // New States for Support Inbox
@@ -352,6 +355,63 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleExportUsers = () => {
+        if (users.length === 0) return toast.error('No users to export');
+        const headers = ['FullName', 'Email', 'Role', 'Status', 'Phone', 'Created At'];
+        const rows = users.map(u => [
+            u.fullName,
+            u.email,
+            u.role,
+            u.status,
+            u.phone || 'N/A',
+            new Date(u.createdAt).toLocaleDateString()
+        ]);
+        const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute("download", `roomzy_users_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success('User registry exported');
+    };
+
+    const handleExportBookings = () => {
+        if (bookings.length === 0) return toast.error('No bookings to export');
+        const headers = ['ID', 'Student', 'Hostel', 'Room', 'Status', 'Price', 'Date'];
+        const rows = bookings.map(b => [
+            b.id,
+            b.student?.fullName,
+            b.hostel?.name,
+            b.room?.roomNumber,
+            b.status,
+            b.monthlyPrice,
+            new Date(b.createdAt).toLocaleDateString()
+        ]);
+        const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute("download", `roomzy_bookings_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success('Booking records exported');
+    };
+
+    const filteredUsers = users.filter(u => {
+        const matchesSearch = u.fullName?.toLowerCase().includes(userSearchTerm.toLowerCase()) || 
+                             u.email?.toLowerCase().includes(userSearchTerm.toLowerCase());
+        const matchesRole = userRoleFilter === 'all' || u.role === userRoleFilter;
+        return matchesSearch && matchesRole;
+    });
+
+    const filteredHostels = hostels.filter(h => 
+        h.name?.toLowerCase().includes(hostelSearchTerm.toLowerCase()) ||
+        h.city?.toLowerCase().includes(hostelSearchTerm.toLowerCase())
+    );
+
     return (
         <DashboardLayout tabs={ADMIN_TABS} activeTab={activeTab} setActiveTab={setActiveTab}>
             {activeTab === 'dashboard' && (
@@ -363,8 +423,14 @@ export default function AdminDashboard() {
                             <p className="text-gray-500 mt-1 font-medium">Platform analytics & management control</p>
                         </div>
                         <div className="flex gap-3">
-                            <Button variant="outline" size="sm" className="hidden md:flex border-gray-200">Export Analytics</Button>
-                            <Button size="sm" className="bg-[#0B1A30] hover:bg-gray-800">Action Center</Button>
+                            <Button variant="outline" onClick={handleExportUsers} size="sm" className="hidden md:flex border-gray-200">Export Analytics</Button>
+                            <Button 
+                                onClick={() => toast(`System Health: Active. ${pendingHostels.length} hostels & ${pendingOwners.length} owners awaiting verification.`, { icon: '🛡️' })}
+                                size="sm" 
+                                className="bg-[#0B1A30] hover:bg-gray-800"
+                            >
+                                Action Center
+                            </Button>
                         </div>
                     </div>
 
@@ -540,11 +606,26 @@ export default function AdminDashboard() {
                         <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 bg-gray-50/30">
                             <div className="relative flex-1 max-w-md group">
                                 <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#0B1A30] transition-colors" />
-                                <input type="text" placeholder="Search by name, email or phone..." className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-[#0B1A30]/5 focus:border-[#0B1A30] transition-all" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Search by name or email..." 
+                                    value={userSearchTerm}
+                                    onChange={(e) => setUserSearchTerm(e.target.value)}
+                                    className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-[#0B1A30]/5 focus:border-[#0B1A30] transition-all" 
+                                />
                             </div>
                             <div className="flex gap-2">
-                                <Button variant="outline" size="sm" className="border-gray-200">Refine View</Button>
-                                <Button variant="outline" size="sm" className="border-gray-200">Export Registry</Button>
+                                <select 
+                                    value={userRoleFilter}
+                                    onChange={(e) => setUserRoleFilter(e.target.value)}
+                                    className="px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-[#0B1A30] focus:ring-2 focus:ring-primary-500 outline-none"
+                                >
+                                    <option value="all">All Roles</option>
+                                    <option value="student">Students</option>
+                                    <option value="owner">Owners</option>
+                                    <option value="admin">Admins</option>
+                                </select>
+                                <Button variant="outline" onClick={handleExportUsers} size="sm" className="border-gray-200">Export Registry</Button>
                             </div>
                         </div>
 
@@ -561,10 +642,10 @@ export default function AdminDashboard() {
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {loadingUsers ? (
-                                        <tr><td colSpan="4" className="px-8 py-20 text-center font-bold text-gray-400 animate-pulse uppercase tracking-widest text-xs">Accessing User Registry...</td></tr>
-                                    ) : users.length === 0 ? (
-                                        <tr><td colSpan="4" className="px-8 py-20 text-center font-bold text-gray-400 uppercase tracking-widest text-xs">No Records Found</td></tr>
-                                    ) : users.map((u) => (
+                                        <tr><td colSpan="5" className="px-8 py-20 text-center font-bold text-gray-400 animate-pulse uppercase tracking-widest text-xs">Accessing User Registry...</td></tr>
+                                    ) : filteredUsers.length === 0 ? (
+                                        <tr><td colSpan="5" className="px-8 py-20 text-center font-bold text-gray-400 uppercase tracking-widest text-xs">No Records Found</td></tr>
+                                    ) : filteredUsers.map((u) => (
                                         <tr key={u.id} className="hover:bg-gray-50/50 transition-colors group">
                                             <td className="px-8 py-6">
                                                 <div className="flex items-center gap-5">
@@ -747,6 +828,18 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="p-6 border-b border-gray-100 bg-gray-50/30">
+                            <div className="relative max-w-md group">
+                                <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#0B1A30] transition-colors" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Search hostels by name or city..." 
+                                    value={hostelSearchTerm}
+                                    onChange={(e) => setHostelSearchTerm(e.target.value)}
+                                    className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-[#0B1A30]/5 focus:border-[#0B1A30] transition-all" 
+                                />
+                            </div>
+                        </div>
                         <div className="overflow-x-auto">
                             {loadingHostels ? (
                                 <div className="p-20 text-center">
@@ -766,8 +859,8 @@ export default function AdminDashboard() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
-                                        {hostels.map((h) => (
-                                            <tr key={h.id} className="hover:bg-gray-50/30 transition-colors group cursor-pointer" onClick={() => setSelectedHostelDetails(h)}>
+                                        {filteredHostels.map((h) => (
+                                            <tr key={h.id} className="hover:bg-gray-50/30 transition-colors group cursor-pointer" onClick={() => { setSelectedHostelDetails(h); setIsHostelEditModalOpen(false); }}>
                                                 <td className="px-8 py-5">
                                                     <div className="flex items-center gap-3">
                                                         <img 
@@ -1215,6 +1308,7 @@ export default function AdminDashboard() {
                                     </button>
                                 ))}
                             </div>
+                            <Button variant="outline" onClick={handleExportBookings} size="sm" className="border-gray-200">Export Bookings</Button>
                         </div>
 
                         <div className="overflow-x-auto">
@@ -1705,7 +1799,7 @@ export default function AdminDashboard() {
                                         <h3 className="text-3xl font-black text-[#0B1A30] mt-2 tracking-tight">{selectedHostelDetails.name}</h3>
                                         <p className="text-gray-400 font-bold text-sm mt-1">{selectedHostelDetails.area}, {selectedHostelDetails.city}</p>
                                     </div>
-                                    <button onClick={() => setSelectedHostelDetails(null)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                                    <button onClick={() => { setSelectedHostelDetails(null); setIsHostelEditModalOpen(false); }} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                                         <FiX size={24} />
                                     </button>
                                 </div>

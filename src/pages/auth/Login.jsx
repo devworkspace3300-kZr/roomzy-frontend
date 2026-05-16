@@ -149,7 +149,16 @@ export default function Login() {
                             <div>
                                 <div className="flex items-center justify-between mb-2">
                                     <label className="block text-sm font-semibold text-text-primary">Password</label>
-                                    <Link to="/forgot-password" className="text-xs text-primary-600 hover:text-primary-700 font-bold hover:underline">Forgot password?</Link>
+                                    <button 
+                                        type="button"
+                                        onClick={() => toast('Please contact the platform administrator or send a direct message for password recovery.', {
+                                            icon: '📧',
+                                            duration: 6000,
+                                        })}
+                                        className="text-xs text-primary-600 hover:text-primary-700 font-bold hover:underline"
+                                    >
+                                        Forgot password?
+                                    </button>
                                 </div>
                                 <div className="relative group">
                                     <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary-500 transition-colors" size={18} />
