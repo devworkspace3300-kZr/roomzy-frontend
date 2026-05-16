@@ -67,25 +67,10 @@ export default function Listings() {
             });
 
             // Enrich institutes with city names for filtering
-            const enrichedInsts = mergedInsts.map(i => ({
-                ...i,
-                city: i.city || i.cityName || cityMap[i.cityId?.toLowerCase()] || (CITIES.find(c => c.id === i.cityId)?.name) || ''
-            }));
-
-            setDynamicInstitutions(enrichedInsts);
+            setDynamicInstitutions(INSTITUTIONS);
             setDynamicAmenities(amenities);
             
-            // Extract unique cities from hostels + institutes
-            const cityNames = [...new Set([
-                ...allHostels.map(h => h.city),
-                ...enrichedInsts.map(i => i.city)
-            ])].filter(Boolean);
-            
-            const cities = cityNames.map(c => ({
-                id: c.toLowerCase(),
-                name: c
-            }));
-            setDynamicCities(cities.length > 0 ? cities : CITIES);
+            setDynamicCities(CITIES);
 
             // Extract unique areas from all hostels
             const areas = [...new Set(allHostels.map(h => `${h.area}|${h.city}`).filter(Boolean))].map(areaCityStr => {
