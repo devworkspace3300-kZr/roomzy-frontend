@@ -14,12 +14,13 @@ export const CITIES = [
 ];
 
 export const INSTITUTIONS = [
-    // Universities
+    // Universities & Medical Colleges
     { id: 'comsats-abbottabad', name: 'COMSATS Abbottabad', city: 'abbottabad', type: 'University', shortName: 'COMSATS' },
     { id: 'aust', name: 'AUST Abbottabad', city: 'abbottabad', type: 'University', shortName: 'AUST' },
-    { id: 'amc', name: 'Ayub Medical College', city: 'abbottabad', type: 'University', shortName: 'AMC' },
-    { id: 'wims', name: 'Women Institute of Learning', city: 'abbottabad', type: 'University', shortName: 'WIL' },
-    { id: 'frontiers-medical', name: 'Frontiers Medical College', city: 'abbottabad', type: 'University', shortName: 'FMC' },
+    { id: 'amc', name: 'Ayub Medical College (AMC)', city: 'abbottabad', type: 'Medical College', shortName: 'AMC' },
+    { id: 'wmc', name: 'Women Medical College', city: 'abbottabad', type: 'Medical College', shortName: 'WMC' },
+    { id: 'wims', name: 'Women Institute of Learning (WIMS)', city: 'abbottabad', type: 'University', shortName: 'WIMS' },
+    { id: 'frontiers-medical', name: 'Frontiers Medical College', city: 'abbottabad', type: 'Medical College', shortName: 'FMC' },
     { id: 'hazara', name: 'Hazara University', city: 'mansehra', type: 'University', shortName: 'HU' },
     { id: 'mansehra-university', name: 'University of Mansehra', city: 'mansehra', type: 'University', shortName: 'UoM' },
     { id: 'pmm', name: 'Poonch Medical College (Mansehra Campus)', city: 'mansehra', type: 'University', shortName: 'PMC' },
@@ -151,7 +152,7 @@ export const FAQ_DATA = [
 ];
 
 export const STATS = [
-    { label: 'Verified Hostels', value: '75+' },
+    { label: 'Verified Hostels', value: '3+' },
     { label: 'Happy Students', value: '1,200+' },
     { label: 'Cities', value: '2' },
     { label: 'Institutes Covered', value: '25+' },

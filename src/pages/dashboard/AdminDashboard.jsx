@@ -424,13 +424,6 @@ export default function AdminDashboard() {
                         </div>
                         <div className="flex gap-3">
                             <Button variant="outline" onClick={handleExportUsers} size="sm" className="hidden md:flex border-gray-200">Export Analytics</Button>
-                            <Button 
-                                onClick={() => toast(`System Health: Active. ${pendingHostels.length} hostels & ${pendingOwners.length} owners awaiting verification.`, { icon: '🛡️' })}
-                                size="sm" 
-                                className="bg-[#0B1A30] hover:bg-gray-800"
-                            >
-                                Action Center
-                            </Button>
                         </div>
                     </div>
 

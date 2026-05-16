@@ -253,17 +253,12 @@ export default function Home() {
                             transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
                             className="mt-16 flex flex-wrap justify-center gap-8 sm:gap-16 border-t border-white/10 pt-8"
                         >
-                            {STATS.map((stat) => {
-                                let val = stat.value;
-                                if (stat.label === 'Verified Hostels') val = `${featuredHostels.length}+`;
-                                if (stat.label === 'Cities') val = Object.keys(cityCounts).length || '2';
-                                return (
-                                    <div key={stat.label} className="text-center flex flex-col items-center">
-                                        <p className="text-3xl sm:text-4xl font-bold text-white drop-shadow-sm">{val}</p>
-                                        <p className="text-sm sm:text-base text-gray-400 font-medium mt-1 uppercase tracking-wider">{stat.label}</p>
-                                    </div>
-                                );
-                            })}
+                            {STATS.map((stat) => (
+                                <div key={stat.label} className="text-center flex flex-col items-center">
+                                    <p className="text-3xl sm:text-4xl font-bold text-white drop-shadow-sm">{stat.value}</p>
+                                    <p className="text-sm sm:text-base text-gray-400 font-medium mt-1 uppercase tracking-wider">{stat.label}</p>
+                                </div>
+                            ))}
                         </motion.div>
                     </div>
                 </div>
