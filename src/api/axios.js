@@ -27,6 +27,15 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,  // Pass through successful responses
   (error) => {
+    // Detailed error logging for debugging connectivity issues
+    console.error('❌ API Error:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      message: error.message,
+      data: error.response?.data
+    });
+
     if (error.response?.status === 401 && !error.config?.url?.includes('/auth/login')) {
       // Token expired or invalid — clear everything and redirect to login
       localStorage.removeItem('roomzy_token');
