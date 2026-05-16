@@ -14,29 +14,26 @@ export const CITIES = [
 ];
 
 export const INSTITUTIONS = [
-    // Universities & Medical Colleges
+    // Abbottabad Main Institutes
     { id: 'comsats-abbottabad', name: 'COMSATS Abbottabad', city: 'abbottabad', type: 'University', shortName: 'COMSATS' },
     { id: 'aust', name: 'AUST Abbottabad', city: 'abbottabad', type: 'University', shortName: 'AUST' },
     { id: 'amc', name: 'Ayub Medical College (AMC)', city: 'abbottabad', type: 'Medical College', shortName: 'AMC' },
     { id: 'wmc', name: 'Women Medical College', city: 'abbottabad', type: 'Medical College', shortName: 'WMC' },
     { id: 'wims', name: 'Women Institute of Learning (WIMS)', city: 'abbottabad', type: 'University', shortName: 'WIMS' },
+    { id: 'ath', name: 'Ayub Teaching Hospital', city: 'abbottabad', type: 'Landmark', shortName: 'ATH' },
     { id: 'frontiers-medical', name: 'Frontiers Medical College', city: 'abbottabad', type: 'Medical College', shortName: 'FMC' },
+    { id: 'gpgc-abbottabad', name: 'Govt. Post Graduate College No. 1', city: 'abbottabad', type: 'College', shortName: 'GPGC' },
+    { id: 'peace-abbottabad', name: 'Peace Group of Schools & Colleges', city: 'abbottabad', type: 'College', shortName: 'Peace' },
+    { id: 'burn-hall', name: 'Army Burn Hall College', city: 'abbottabad', type: 'College', shortName: 'Burn Hall' },
+
+    // Mansehra Main Institutes
     { id: 'hazara', name: 'Hazara University', city: 'mansehra', type: 'University', shortName: 'HU' },
     { id: 'mansehra-university', name: 'University of Mansehra', city: 'mansehra', type: 'University', shortName: 'UoM' },
-    { id: 'pmm', name: 'Poonch Medical College (Mansehra Campus)', city: 'mansehra', type: 'University', shortName: 'PMC' },
-    { id: 'paf-iast', name: 'PAF-IAST Haripur/Mansehra', city: 'mansehra', type: 'University', shortName: 'PAF-IAST' },
-
-    // Schools & Colleges
-    { id: 'tameer-e-wattan', name: 'Tameer-e-Wattan School & College', city: 'abbottabad', type: 'School/College', shortName: 'Tameer-e-Wattan' },
-    { id: 'peace-abbottabad', name: 'Peace Group of Schools & Colleges', city: 'abbottabad', type: 'School/College', shortName: 'Peace' },
-    { id: 'peace-mansehra', name: 'Peace Group of Schools & Colleges', city: 'mansehra', type: 'School/College', shortName: 'Peace' },
-    { id: 'burn-hall', name: 'Army Burn Hall College', city: 'abbottabad', type: 'School/College', shortName: 'Burn Hall' },
-    { id: 'aps-abbottabad', name: 'Army Public School & College', city: 'abbottabad', type: 'School/College', shortName: 'APS' },
-    { id: 'pips', name: 'Pakistan International Public School', city: 'abbottabad', type: 'School/College', shortName: 'PIPS' },
-    { id: 'gpgc-abbottabad', name: 'Govt. Post Graduate College No. 1', city: 'abbottabad', type: 'School/College', shortName: 'GPGC' },
-    { id: 'gpgc-mansehra', name: 'Govt. Post Graduate College', city: 'mansehra', type: 'School/College', shortName: 'GPGC' },
-    { id: 'mansehra-public', name: 'Mansehra Public School & College', city: 'mansehra', type: 'School/College', shortName: 'MPS' },
-    { id: 'tks', name: 'The Knowledge School', city: 'mansehra', type: 'School/College', shortName: 'TKS' },
+    { id: 'paf-iast', name: 'PAF-IAST', city: 'mansehra', type: 'University', shortName: 'PAF-IAST' },
+    { id: 'pmm', name: 'Poonch Medical College (Mansehra)', city: 'mansehra', type: 'University', shortName: 'PMC' },
+    { id: 'gpgc-mansehra', name: 'Govt. Post Graduate College', city: 'mansehra', type: 'College', shortName: 'GPGC' },
+    { id: 'peace-mansehra', name: 'Peace Group of Schools & Colleges', city: 'mansehra', type: 'College', shortName: 'Peace' },
+    { id: 'mansehra-public', name: 'Mansehra Public School & College', city: 'mansehra', type: 'College', shortName: 'MPS' },
 ];
 
 export const AMENITIES = [

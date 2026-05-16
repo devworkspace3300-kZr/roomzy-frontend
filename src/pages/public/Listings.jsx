@@ -207,7 +207,7 @@ export default function Listings() {
                     style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1rem' }}
                 >
                     <option value="">All Cities</option>
-                    {(dynamicCities.length > 0 ? dynamicCities : CITIES).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    {CITIES.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
             </div>
 
@@ -244,35 +244,13 @@ export default function Listings() {
                     style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1rem' }}
                 >
                     <option value="">All Institutions</option>
-                    {(dynamicInstitutions.length > 0 ? dynamicInstitutions : INSTITUTIONS)
+                    {INSTITUTIONS
                         .filter(inst => {
-                            // Filter by city first
-                            if (filters.city) {
-                                const cityMatch = inst?.city?.toLowerCase() === filters.city?.toLowerCase();
-                                const cityIdMatch = inst?.city_id === filters.city;
-                                if (!cityMatch && !cityIdMatch) return false;
-                            }
-                            // If area is selected, prioritize/filter by area if available in the institute data
-                            if (filters.area) {
-                                const areaMatch = inst?.area?.toLowerCase() === filters.area?.toLowerCase();
-                                if (areaMatch) return true;
-                                // If no direct area match, still show it if it's in the same city (to be helpful)
-                                return true; 
-                            }
-                            return true;
-                        })
-                        .sort((a, b) => {
-                            // Prioritize institutes in the selected area
-                            if (filters.area) {
-                                const aInArea = a?.area?.toLowerCase() === filters.area?.toLowerCase();
-                                const bInArea = b?.area?.toLowerCase() === filters.area?.toLowerCase();
-                                if (aInArea && !bInArea) return -1;
-                                if (!aInArea && bInArea) return 1;
-                            }
-                            return 0;
+                            if (!filters.city) return true;
+                            return inst.city === filters.city;
                         })
                         .map((inst) => (
-                        <option key={inst.id} value={inst.id}>{inst.name} {inst.area ? `(${inst.area})` : ''}</option>
+                        <option key={inst.id} value={inst.id}>{inst.name} ({inst.type})</option>
                     ))}
                 </select>
             </div>

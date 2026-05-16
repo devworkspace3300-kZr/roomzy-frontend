@@ -195,7 +195,7 @@ export default function Home() {
                                         className="w-full pl-14 pr-4 py-3.5 bg-transparent text-gray-900 font-semibold text-sm border-none focus:outline-none focus:ring-0 focus:bg-white appearance-none cursor-pointer rounded-xl transition-all"
                                     >
                                         <option value="">City?</option>
-                                        {((dynamicCities.length > 0 ? dynamicCities : CITIES)).map((city) => (
+                                        {CITIES.map((city) => (
                                             <option key={city.id} value={city.id}>{city.name}</option>
                                         ))}
                                     </select>
@@ -214,19 +214,14 @@ export default function Home() {
                                         className="w-full pl-14 pr-4 py-3.5 bg-transparent text-gray-900 font-semibold text-sm border-none focus:outline-none focus:ring-0 focus:bg-white appearance-none cursor-pointer rounded-xl transition-all"
                                     >
                                         <option value="">Institute</option>
-                                        {(dynamicInstitutions.length > 0 ? dynamicInstitutions : INSTITUTIONS)
+                                        {INSTITUTIONS
                                             .filter(inst => {
                                                 if (!searchCity) return true;
-                                                const sCity = searchCity.toLowerCase().trim();
-                                                const iCity = (inst.city || inst.cityName || inst.city_id || '').toLowerCase().trim();
-                                                const iId = (inst.cityId || inst.city_id || '').toLowerCase().trim();
-                                                
-                                                // Loose match: check if city name matches OR if the city ID matches
-                                                return iCity === sCity || iId === sCity || iCity.includes(sCity) || sCity.includes(iCity);
+                                                return inst.city === searchCity;
                                             })
                                             .map((inst) => (
                                                 <option key={inst.id} value={inst.id}>
-                                                    {inst.name} {inst.instituteType || inst.type ? `(${inst.instituteType || inst.type})` : ''}
+                                                    {inst.name} ({inst.type})
                                                 </option>
                                             ))}
                                     </select>
