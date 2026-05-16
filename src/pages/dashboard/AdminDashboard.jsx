@@ -134,6 +134,20 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleDeleteAllChats = async () => {
+        if (!window.confirm('Are you sure you want to completely delete all chats and messages from the database? This action cannot be undone.')) return;
+        
+        try {
+            await api.delete('/chat/admin/all');
+            toast.success('All chats and messages deleted successfully');
+            setSupportInquiries([]);
+            setSelectedInquiry(null);
+            setInquiryMessages([]);
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to delete all chats');
+        }
+    };
+
     const fixCloudinaryUrl = (url) => {
         if (!url) return '';
         // If it's a PDF, we must use the /raw/ endpoint to bypass Cloudinary's image security blocks
@@ -1510,9 +1524,17 @@ export default function AdminDashboard() {
 
             {activeTab === 'support' && (
                 <div className="space-y-8 animate-fade-in pb-8">
-                    <div>
-                        <h2 className="text-3xl font-[900] text-[#0B1A30] tracking-tight">Support Inbox</h2>
-                        <p className="text-gray-500 mt-1 font-medium">Manage platform support inquiries from students and owners</p>
+                    <div className="flex justify-between items-end">
+                        <div>
+                            <h2 className="text-3xl font-[900] text-[#0B1A30] tracking-tight">Support Inbox</h2>
+                            <p className="text-gray-500 mt-1 font-medium">Manage platform support inquiries from students and owners</p>
+                        </div>
+                        <button
+                            onClick={handleDeleteAllChats}
+                            className="px-4 py-2 bg-red-50 text-red-600 font-black text-[10px] rounded-xl uppercase tracking-widest hover:bg-red-100 transition-colors flex items-center gap-2"
+                        >
+                            <FiTrash2 size={14} /> Clear All Chats
+                        </button>
                     </div>
 
                     <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 flex overflow-hidden" style={{ minHeight: '70vh' }}>
