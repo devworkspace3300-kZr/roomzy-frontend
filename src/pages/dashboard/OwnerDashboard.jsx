@@ -90,6 +90,7 @@ export default function OwnerDashboard() {
             .catch(() => setBookings([]))
             .finally(() => setLoadingBookings(false));
 
+        fetchEarnings();
         refreshUser();
     }, []);
 

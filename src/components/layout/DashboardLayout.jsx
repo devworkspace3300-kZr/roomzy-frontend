@@ -15,7 +15,7 @@ export default function DashboardLayout({ tabs, activeTab, setActiveTab, childre
         const isOwnerListPage = window.location.pathname === '/dashboard/owner/list-hostel';
         const isSubPage = window.location.pathname.includes('/manage-rooms/') || (user?.role === 'student' && window.location.pathname.includes('/bookings'));
 
-        if (id === 'settings') {
+        if (id === 'settings' && user?.role !== 'admin') {
             if (!isSettingsPage) navigate('/dashboard/settings');
         } else if (id === 'dashboard') {
             if (window.location.pathname !== rolePath) navigate(rolePath);
