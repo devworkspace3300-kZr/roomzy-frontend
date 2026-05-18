@@ -119,9 +119,25 @@ export default function ListHostel() {
 
     const handleImageChange = (e) => {
         const files = Array.from(e.target.files);
-        setTempImages(prev => [...prev, ...files]);
-        const newPreviews = files.map(file => URL.createObjectURL(file));
-        setImagePreviews(prev => [...prev, ...newPreviews]);
+        
+        const validFiles = [];
+        for (const file of files) {
+            if (!file.name.match(/\.(jpg|jpeg|png|gif|jfif)$/i)) {
+                toast.error(`Invalid format: ${file.name}. Only JPG, PNG, GIF, and JFIF are allowed.`);
+                continue;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error(`File too large: ${file.name}. Max size is 5MB.`);
+                continue;
+            }
+            validFiles.push(file);
+        }
+
+        if (validFiles.length > 0) {
+            setTempImages(prev => [...prev, ...validFiles]);
+            const newPreviews = validFiles.map(file => URL.createObjectURL(file));
+            setImagePreviews(prev => [...prev, ...newPreviews]);
+        }
     };
 
     const removeImage = (index) => {
@@ -200,7 +216,10 @@ export default function ListHostel() {
             toast.success('Hostel submitted successfully!');
             navigate('/dashboard/owner');
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to submit hostel');
+            console.error('Submit error:', error);
+            const errRes = error.response?.data?.message;
+            const message = Array.isArray(errRes) ? errRes[0] : (errRes || 'Failed to submit hostel');
+            toast.error(message);
         } finally {
             setLoading(false);
         }
