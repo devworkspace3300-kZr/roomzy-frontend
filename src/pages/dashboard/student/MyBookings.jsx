@@ -67,6 +67,7 @@ export default function MyBookings({ noLayout = false }) {
         try {
             await api.post(`/reviews/${selectedBookingForReview.id}`, reviewForm);
             toast.success('Review submitted successfully! It will be published after moderation.');
+            setBookings(prev => prev.map(b => b.id === selectedBookingForReview.id ? { ...b, hasReview: true } : b));
             setSelectedBookingForReview(null);
             setReviewForm({ overall_rating: 5, body: '', title: '' });
         } catch (error) {
@@ -283,7 +284,7 @@ export default function MyBookings({ noLayout = false }) {
                                             </div>
                                         )}
 
-                                        {(booking.status === 'completed' || booking.status === 'active_stay' || booking.status === 'confirmed') && (
+                                        {((booking.status === 'completed' || booking.status === 'active_stay' || booking.status === 'confirmed') && !booking.hasReview) && (
                                             <div className="mt-4">
                                                 <button
                                                     onClick={() => setSelectedBookingForReview(booking)}
