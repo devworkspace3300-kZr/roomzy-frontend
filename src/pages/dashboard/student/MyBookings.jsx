@@ -283,7 +283,7 @@ export default function MyBookings({ noLayout = false }) {
                                             </div>
                                         )}
 
-                                        {(booking.status === 'completed' || booking.status === 'active_stay') && (
+                                        {(booking.status === 'completed' || booking.status === 'active_stay' || booking.status === 'confirmed') && (
                                             <div className="mt-4">
                                                 <button
                                                     onClick={() => setSelectedBookingForReview(booking)}
