@@ -982,7 +982,7 @@ export default function OwnerDashboard() {
                                                     <p className="text-[#0B1A30] font-bold text-xs">{tx.hostel}</p>
                                                 </td>
                                                 <td className="px-8 py-5 text-gray-500 text-xs">
-                                                    {new Date(tx.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                    {tx.date ? new Date(tx.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
                                                 </td>
                                                 <td className="px-8 py-5">
                                                     <span className="font-mono text-[10px] bg-gray-50 text-gray-500 px-2.5 py-1 rounded-md border border-gray-100 font-bold uppercase tracking-wider">{tx.reference}</span>
@@ -1086,7 +1086,7 @@ export default function OwnerDashboard() {
                                             <div key={idx} className="flex justify-between items-center text-sm border-b border-gray-50 pb-3 last:border-0">
                                                 <div>
                                                     <p className="font-bold text-[#0B1A30]">{tx.student}</p>
-                                                    <p className="text-[10px] text-gray-400 font-medium">{new Date(tx.date).toLocaleDateString('en-GB')}</p>
+                                                    <p className="text-[10px] text-gray-400 font-medium">{tx.date ? new Date(tx.date).toLocaleDateString('en-GB') : 'N/A'}</p>
                                                 </div>
                                                 <span className="font-black text-emerald-500">+ PKR {tx.payout?.toLocaleString()}</span>
                                             </div>

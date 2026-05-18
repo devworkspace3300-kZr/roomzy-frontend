@@ -1873,7 +1873,7 @@ export default function AdminDashboard() {
                         ) : reviews.length === 0 ? (
                             <div className="p-20 text-center">
                                 <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                                    <FiBookmark size={32} className="text-gray-200" />
+                                    <FiMessageSquare size={32} className="text-gray-200" />
                                 </div>
                                 <h4 className="text-lg font-black text-[#0B1A30] uppercase tracking-tighter mb-2">No Reviews Found</h4>
                                 <p className="text-sm text-gray-400 max-w-xs mx-auto font-medium">When students complete their stays, their hostel reviews will appear here for your moderation.</p>

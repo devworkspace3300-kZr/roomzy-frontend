@@ -4,7 +4,6 @@ import { useAuth } from '../../context/AuthContext';
 import { registerUser } from '../../api/authApi';
 import { motion } from 'framer-motion';
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiPhone } from 'react-icons/fi';
-import { FcGoogle } from 'react-icons/fc';
 import Button from '../../components/ui/Button';
 import toast from 'react-hot-toast';
 import logo from '../../assets/logo.jpg';
@@ -160,17 +159,7 @@ export default function Signup() {
                             ))}
                         </div>
 
-                        {/* Google Signup */}
-                        <button className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-border bg-white text-sm font-semibold text-text-primary hover:bg-gray-50 hover:shadow-sm transition-all mb-6">
-                            <FcGoogle size={20} />
-                            Sign up with Google
-                        </button>
 
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="flex-1 h-px bg-border" />
-                            <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">Or</span>
-                            <div className="flex-1 h-px bg-border" />
-                        </div>
 
                         {error && (
                             <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg mb-6 border border-red-100">

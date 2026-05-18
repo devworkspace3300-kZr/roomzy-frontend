@@ -248,7 +248,7 @@ export default function MyBookings({ noLayout = false }) {
 
                                         </div>
 
-                                        {!['completed', 'cancelled', 'rejected', 'expired'].includes(booking.status) && (
+                                        {booking.status === 'pending' && (
                                             <div className="mt-3">
                                                 <button
                                                     onClick={() => handleCancel(booking.id)}
