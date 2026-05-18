@@ -1928,7 +1928,12 @@ export default function AdminDashboard() {
 
                                         <div className="flex flex-col items-end gap-3 shrink-0">
                                             <span className="text-[10px] text-gray-400 font-bold">
-                                                {new Date(review.created_at || review.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                {(() => {
+                                                    const dateVal = review.created_at || review.createdAt;
+                                                    if (!dateVal) return 'Pending';
+                                                    const d = new Date(dateVal);
+                                                    return isNaN(d.getTime()) ? 'Pending' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                                                })()}
                                             </span>
                                             
                                             {review.status === 'pending' ? (
