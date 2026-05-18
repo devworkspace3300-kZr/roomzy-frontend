@@ -32,6 +32,13 @@ export default function HostelDetails() {
     const [reviews, setReviews] = useState([]);
     const [loadingReviews, setLoadingReviews] = useState(false);
 
+    const getAverageRating = () => {
+        const validReviews = reviews?.filter(r => r && r.overall_rating) || [];
+        if (validReviews.length === 0) return '0.0';
+        const sum = validReviews.reduce((acc, r) => acc + Number(r.overall_rating), 0);
+        return (sum / validReviews.length).toFixed(1);
+    };
+
     useEffect(() => {
         setLoading(true);
         api.get(`/hostels/${id}`)
@@ -76,7 +83,7 @@ export default function HostelDetails() {
 
     // Build images array
     const images = hostel?.images?.length > 0
-        ? hostel.images.map(img => typeof img === 'string' ? img : img.imageUrl)
+        ? hostel.images.map(img => typeof img === 'string' ? img : (img?.imageUrl || 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&q=80'))
         : ['https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&q=80'];
 
     if (loading) return (
@@ -260,7 +267,7 @@ export default function HostelDetails() {
                                     <div className="flex items-center gap-1.5 text-sm font-bold text-[#0B1A30]">
                                         <FiStar size={16} className="text-amber-500 fill-amber-500" />
                                         <span>
-                                            {(reviews.reduce((acc, r) => acc + Number(r.overall_rating), 0) / reviews.length).toFixed(1)} / 5.0
+                                            {getAverageRating()} / 5.0
                                         </span>
                                     </div>
                                 )}
@@ -278,7 +285,7 @@ export default function HostelDetails() {
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    {reviews.map((rev) => (
+                                    {reviews.filter(Boolean).map((rev) => (
                                         <div key={rev.id} className="p-5 rounded-2xl border border-border-light bg-white space-y-3 shadow-sm hover:border-primary-200 transition-all">
                                             <div className="flex items-start justify-between">
                                                 <div className="flex items-center gap-3">
@@ -290,8 +297,8 @@ export default function HostelDetails() {
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <p className="font-semibold text-sm text-text-primary">{rev.student_name}</p>
-                                                        <p className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Stayed {rev.stay_duration_months} Months</p>
+                                                        <p className="font-semibold text-sm text-text-primary">{rev.student_name || 'Anonymous Student'}</p>
+                                                        <p className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Stayed {rev.stay_duration_months || 1} Months</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-1">
@@ -299,14 +306,14 @@ export default function HostelDetails() {
                                                         <FiStar
                                                             key={i}
                                                             size={13}
-                                                            className={i < rev.overall_rating ? "text-amber-400 fill-amber-400" : "text-gray-200"}
+                                                            className={i < Number(rev.overall_rating || 0) ? "text-amber-400 fill-amber-400" : "text-gray-200"}
                                                         />
                                                     ))}
                                                 </div>
                                             </div>
 
                                             <div>
-                                                <h4 className="text-sm font-bold text-text-primary">{rev.title}</h4>
+                                                <h4 className="text-sm font-bold text-text-primary">{rev.title || 'Stay Review'}</h4>
                                                 <p className="text-xs text-text-secondary leading-relaxed mt-1 font-medium">{rev.body}</p>
                                             </div>
 
@@ -321,7 +328,7 @@ export default function HostelDetails() {
                                                     { l: 'Value', v: rev.value_for_money }
                                                 ].map((sub, idx) => (
                                                     <span key={idx} className="px-2 py-0.5 rounded-md bg-gray-50 text-[9px] font-bold text-text-muted border border-border-light">
-                                                        {sub.l}: {sub.v}/5
+                                                        {sub.l}: {Number(sub.v || rev.overall_rating || 0).toFixed(0)}/5
                                                     </span>
                                                 ))}
                                             </div>
