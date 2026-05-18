@@ -138,8 +138,10 @@ export default function AdminDashboard() {
         setLoadingReviews(true);
         try {
             const res = await api.get('/reviews/admin/all');
-            setReviews(res.data?.data || []);
+            const fetchedData = res.data?.data;
+            setReviews(Array.isArray(fetchedData) ? fetchedData : []);
         } catch (error) {
+            setReviews([]);
             toast.error('Failed to load reviews');
         } finally {
             setLoadingReviews(false);
@@ -1861,7 +1863,7 @@ export default function AdminDashboard() {
                         <div className="p-8 border-b border-gray-100 bg-gray-50/30 flex items-center justify-between">
                             <h3 className="text-lg font-black text-[#0B1A30] uppercase tracking-tighter">Review Moderation Registry</h3>
                             <span className="text-[10px] bg-primary-50 text-primary-600 font-black px-3 py-1 rounded-full uppercase tracking-widest">
-                                {reviews.length} Total Submissions
+                                {Array.isArray(reviews) ? reviews.length : 0} Total Submissions
                             </span>
                         </div>
 
@@ -1870,7 +1872,7 @@ export default function AdminDashboard() {
                                 <div className="animate-spin w-8 h-8 border-2 border-[#0B1A30] border-t-transparent rounded-full mx-auto mb-4" />
                                 <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Accessing review database...</p>
                             </div>
-                        ) : reviews.length === 0 ? (
+                        ) : !Array.isArray(reviews) || reviews.length === 0 ? (
                             <div className="p-20 text-center">
                                 <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
                                     <FiMessageSquare size={32} className="text-gray-200" />
@@ -1880,30 +1882,30 @@ export default function AdminDashboard() {
                             </div>
                         ) : (
                             <div className="divide-y divide-gray-100">
-                                {reviews.map((review) => (
+                                {reviews.filter(Boolean).map((review) => (
                                     <div key={review.id} className="p-8 hover:bg-gray-50/30 transition-colors flex flex-col md:flex-row md:items-start justify-between gap-6">
                                         <div className="flex-1 space-y-4">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center text-primary-700 font-black text-lg">
-                                                    {review.student_name?.charAt(0)}
+                                                    {(review.student_name || 'Student').charAt(0)}
                                                 </div>
                                                 <div>
                                                     <div className="flex items-center gap-3">
-                                                        <h4 className="text-base font-black text-[#0B1A30]">{review.student_name}</h4>
+                                                        <h4 className="text-base font-black text-[#0B1A30]">{review.student_name || 'Anonymous'}</h4>
                                                         <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest ${
                                                             review.status === 'pending' ? 'bg-amber-50 text-amber-600' :
                                                             review.status === 'approved' ? 'bg-emerald-50 text-emerald-600' :
                                                             'bg-red-50 text-red-600'
                                                         }`}>
-                                                            {review.status}
+                                                            {review.status || 'pending'}
                                                         </span>
                                                     </div>
-                                                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">{review.hostel_name} • Duration: {review.stay_duration_months} Months</p>
+                                                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">{review.hostel_name || 'Hostel'} • Duration: {review.stay_duration_months || 0} Months</p>
                                                 </div>
                                             </div>
 
                                             <div>
-                                                <h5 className="text-sm font-black text-[#0B1A30]">{review.title}</h5>
+                                                <h5 className="text-sm font-black text-[#0B1A30]">{review.title || 'Review'}</h5>
                                                 <p className="text-sm text-gray-600 leading-relaxed mt-1 font-medium">{review.body}</p>
                                             </div>
 
@@ -1920,7 +1922,7 @@ export default function AdminDashboard() {
                                                 ].map((sub, idx) => (
                                                     <div key={idx} className="bg-gray-50 border border-gray-100 rounded-lg p-2 text-center">
                                                         <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">{sub.label}</p>
-                                                        <p className="text-xs font-black text-[#0B1A30] mt-0.5">{sub.val}/5</p>
+                                                        <p className="text-xs font-black text-[#0B1A30] mt-0.5">{Number(sub.val || review.overall_rating || 0).toFixed(0)}/5</p>
                                                     </div>
                                                 ))}
                                             </div>

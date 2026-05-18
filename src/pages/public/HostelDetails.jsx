@@ -33,7 +33,8 @@ export default function HostelDetails() {
     const [loadingReviews, setLoadingReviews] = useState(false);
 
     const getAverageRating = () => {
-        const validReviews = reviews?.filter(r => r && r.overall_rating) || [];
+        if (!Array.isArray(reviews)) return '0.0';
+        const validReviews = reviews.filter(r => r && r.overall_rating);
         if (validReviews.length === 0) return '0.0';
         const sum = validReviews.reduce((acc, r) => acc + Number(r.overall_rating), 0);
         return (sum / validReviews.length).toFixed(1);
@@ -53,9 +54,10 @@ export default function HostelDetails() {
         setLoadingReviews(true);
         api.get(`/reviews/hostel/${id}`)
             .then(res => {
-                setReviews(res.data?.data || []);
+                const fetchedData = res.data?.data;
+                setReviews(Array.isArray(fetchedData) ? fetchedData : []);
             })
-            .catch(() => {})
+            .catch(() => setReviews([]))
             .finally(() => setLoadingReviews(false));
     }, [id]);
 
