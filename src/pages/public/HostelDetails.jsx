@@ -214,7 +214,7 @@ export default function HostelDetails() {
                         {/* Available Rooms */}
                         <div>
                             <h2 className="text-lg font-semibold text-text-primary mb-4">
-                                Available Rooms ({rooms.length} Types • {rooms.reduce((acc, r) => acc + r.availableBeds, 0)} Beds)
+                                Available Rooms ({rooms.length} Types • {rooms.reduce((acc, r) => acc + Number(r.availableBeds || 0), 0)} Beds)
                             </h2>
                             {rooms.length === 0 ? (
                                 <div className="p-6 rounded-2xl bg-gray-50 border border-border-light text-center text-text-muted">
@@ -384,7 +384,7 @@ export default function HostelDetails() {
                             <div className="flex items-center justify-between">
                                 <div className="flex items-baseline gap-1">
                                     <span className="text-3xl font-bold text-text-primary">
-                                        {hostel.startingPrice ? `₨${hostel.startingPrice.toLocaleString()}` : (rooms[0] ? `₨${rooms[0].pricePerMonth?.toLocaleString()}` : 'Contact')}
+                                        {hostel.startingPrice ? `₨${Number(hostel.startingPrice).toLocaleString()}` : (rooms[0] ? `₨${Number(rooms[0].pricePerMonth).toLocaleString()}` : 'Contact')}
                                     </span>
                                     <span className="text-text-muted text-sm">/month</span>
                                 </div>
@@ -400,7 +400,7 @@ export default function HostelDetails() {
                             {selectedRoom && (
                                 <div className="p-3 rounded-xl bg-primary-50 border border-primary-100 text-sm">
                                     <p className="font-semibold text-primary-700">{ROOM_TYPE_LABELS[selectedRoom.roomType]} Room selected</p>
-                                    <p className="text-primary-600">₨{selectedRoom.pricePerMonth?.toLocaleString()}/month</p>
+                                    <p className="text-primary-600">₨{Number(selectedRoom.pricePerMonth).toLocaleString()}/month</p>
                                 </div>
                             )}
 
@@ -508,7 +508,7 @@ export default function HostelDetails() {
                 <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
                     <div>
                         <div className="text-lg font-bold text-text-primary">
-                            ₨{selectedRoom ? selectedRoom.pricePerMonth?.toLocaleString() : (hostel.startingPrice?.toLocaleString() || '---')}
+                            ₨{selectedRoom ? Number(selectedRoom.pricePerMonth).toLocaleString() : (hostel.startingPrice ? Number(hostel.startingPrice).toLocaleString() : '---')}
                         </div>
                         <div className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Per Month</div>
                     </div>
