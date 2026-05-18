@@ -909,7 +909,7 @@ export default function OwnerDashboard() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         <StatCard 
                             label="Gross Revenue" 
-                            value={earnings.totalRevenue?.toLocaleString()} 
+                            value={(earnings?.totalRevenue || 0).toLocaleString()} 
                             prefix="PKR"
                             badge="Total Inflow" 
                             badgeColor="text-primary-600 bg-primary-50" 
@@ -917,7 +917,7 @@ export default function OwnerDashboard() {
                         />
                         <StatCard 
                             label="Net Payouts" 
-                            value={earnings.netPayout?.toLocaleString()} 
+                            value={(earnings?.netPayout || 0).toLocaleString()} 
                             prefix="PKR"
                             badge="Owner Share" 
                             badgeColor="text-emerald-600 bg-emerald-50" 
@@ -925,7 +925,7 @@ export default function OwnerDashboard() {
                         />
                         <StatCard 
                             label="Platform Fees" 
-                            value={earnings.platformFees?.toLocaleString()} 
+                            value={(earnings?.platformFees || 0).toLocaleString()} 
                             prefix="PKR"
                             badge="Commission" 
                             badgeColor="text-amber-600 bg-amber-50" 
@@ -937,7 +937,7 @@ export default function OwnerDashboard() {
                         <div className="p-8 border-b border-gray-50 bg-gray-50/20 flex flex-col sm:flex-row items-center justify-between gap-4">
                             <h3 className="text-md font-black text-[#0B1A30] uppercase tracking-tighter">Payments Ledger</h3>
                             <span className="text-[10px] font-black text-[#0B1A30] bg-gray-100 px-3 py-1 rounded-full uppercase tracking-widest">
-                                {earnings.totalTransactions} Completed Settlements
+                                {earnings?.totalTransactions || 0} Completed Settlements
                             </span>
                         </div>
 
@@ -947,7 +947,7 @@ export default function OwnerDashboard() {
                                     <div className="animate-spin w-8 h-8 border-2 border-[#0B1A30] border-t-transparent rounded-full mx-auto mb-4" />
                                     <p className="text-[10px] font-black uppercase tracking-widest">Accessing Ledger Balance...</p>
                                 </div>
-                            ) : earnings.recentTransactions?.length === 0 ? (
+                            ) : (earnings?.recentTransactions || []).length === 0 ? (
                                 <div className="p-20 text-center">
                                     <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
                                         <FiDollarSign size={32} className="text-gray-200" />
@@ -968,7 +968,7 @@ export default function OwnerDashboard() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
-                                        {earnings.recentTransactions.map((tx) => (
+                                        {(earnings?.recentTransactions || []).map((tx) => (
                                             <tr key={tx.id} className="hover:bg-gray-50/30 transition-colors">
                                                 <td className="px-8 py-5 font-bold text-[#0B1A30] text-sm">
                                                     <div className="flex items-center gap-3">
