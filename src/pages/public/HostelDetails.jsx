@@ -171,6 +171,12 @@ export default function HostelDetails() {
                         <div>
                             <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">{hostel.name}</h1>
                             <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-text-muted">
+                                {reviews.length > 0 && (
+                                    <div className="flex items-center gap-1 text-[#0B1A30] bg-[#0B1A30]/5 px-2.5 py-1 rounded-lg text-xs font-black">
+                                        <FiStar size={13} className="text-amber-500 fill-amber-500" />
+                                        <span>{getAverageRating()} ({reviews.length} reviews)</span>
+                                    </div>
+                                )}
                                 <div className="flex items-center gap-1.5">
                                     <FiMapPin size={15} />
                                     <span>{hostel.fullAddress || `${hostel.area}, ${hostel.city}`}</span>
@@ -306,7 +312,7 @@ export default function HostelDetails() {
                                                         <FiStar
                                                             key={i}
                                                             size={13}
-                                                            className={i < Number(rev.overall_rating || 0) ? "text-amber-400 fill-amber-400" : "text-gray-200"}
+                                                            className={i < Math.round(Number(rev.overall_rating || 0)) ? "text-amber-400 fill-amber-400" : "text-gray-200"}
                                                         />
                                                     ))}
                                                 </div>
@@ -375,11 +381,20 @@ export default function HostelDetails() {
                     {/* Booking Sidebar */}
                     <div>
                         <div className="sticky top-24 bg-white rounded-2xl border border-border-light shadow-card p-6 space-y-5">
-                            <div className="flex items-baseline gap-1">
-                                <span className="text-3xl font-bold text-text-primary">
-                                    {hostel.startingPrice ? `₨${hostel.startingPrice.toLocaleString()}` : (rooms[0] ? `₨${rooms[0].pricePerMonth?.toLocaleString()}` : 'Contact')}
-                                </span>
-                                <span className="text-text-muted text-sm">/month</span>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-3xl font-bold text-text-primary">
+                                        {hostel.startingPrice ? `₨${hostel.startingPrice.toLocaleString()}` : (rooms[0] ? `₨${rooms[0].pricePerMonth?.toLocaleString()}` : 'Contact')}
+                                    </span>
+                                    <span className="text-text-muted text-sm">/month</span>
+                                </div>
+                                {reviews.length > 0 && (
+                                    <div className="flex items-center gap-1 text-xs font-bold text-text-primary">
+                                        <FiStar size={14} className="text-amber-500 fill-amber-500" />
+                                        <span>{getAverageRating()}</span>
+                                        <span className="text-text-muted font-normal">({reviews.length})</span>
+                                    </div>
+                                )}
                             </div>
 
                             {selectedRoom && (
