@@ -23,6 +23,11 @@ export default function MyBookings({ noLayout = false }) {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [cancelling, setCancelling] = useState(null);
+    
+    // Review Modal States
+    const [selectedBookingForReview, setSelectedBookingForReview] = useState(null);
+    const [reviewForm, setReviewForm] = useState({ overall_rating: 5, body: '', title: '' });
+    const [submittingReview, setSubmittingReview] = useState(false);
 
     useEffect(() => {
         api.get('/bookings/my')
@@ -53,6 +58,21 @@ export default function MyBookings({ noLayout = false }) {
             toast.error('Failed to cancel');
         } finally {
             setCancelling(null);
+        }
+    };
+
+    const handleSubmitReview = async (e) => {
+        e.preventDefault();
+        setSubmittingReview(true);
+        try {
+            await api.post(`/reviews/${selectedBookingForReview.id}`, reviewForm);
+            toast.success('Review submitted successfully! It will be published after moderation.');
+            setSelectedBookingForReview(null);
+            setReviewForm({ overall_rating: 5, body: '', title: '' });
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to submit review');
+        } finally {
+            setSubmittingReview(false);
         }
     };
 
@@ -228,7 +248,7 @@ export default function MyBookings({ noLayout = false }) {
 
                                         </div>
 
-                                        {booking.status === 'pending' && (
+                                        {!['completed', 'cancelled', 'rejected', 'expired'].includes(booking.status) && (
                                             <div className="mt-3">
                                                 <button
                                                     onClick={() => handleCancel(booking.id)}
@@ -262,11 +282,101 @@ export default function MyBookings({ noLayout = false }) {
                                                 </button>
                                             </div>
                                         )}
+
+                                        {booking.status === 'completed' && (
+                                            <div className="mt-4">
+                                                <button
+                                                    onClick={() => setSelectedBookingForReview(booking)}
+                                                    className="px-6 py-2.5 bg-[#0B1A30] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-800 transition-all shadow-md"
+                                                >
+                                                    Leave a Review
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </motion.div>
                         );
                     })}
+                </div>
+            )}
+
+            {/* Review Modal */}
+            {selectedBookingForReview && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <motion.div 
+                        initial={{ opacity: 0 }} 
+                        animate={{ opacity: 1 }} 
+                        onClick={() => setSelectedBookingForReview(null)}
+                        className="absolute inset-0 bg-[#0B1A30]/60 backdrop-blur-sm"
+                    />
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }} 
+                        animate={{ opacity: 1, scale: 1, y: 0 }} 
+                        className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl relative z-10 overflow-hidden"
+                    >
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                            <div>
+                                <h3 className="text-xl font-[900] text-[#0B1A30]">Rate your stay</h3>
+                                <p className="text-xs text-gray-500 font-medium">How was your experience at {selectedBookingForReview.hostel?.name}?</p>
+                            </div>
+                            <button onClick={() => setSelectedBookingForReview(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-gray-500 hover:bg-gray-300">
+                                <FiX size={16} />
+                            </button>
+                        </div>
+                        
+                        <div className="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                            <form onSubmit={handleSubmitReview} className="space-y-6">
+                                <div>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 block">Overall Rating</label>
+                                    <div className="flex gap-2">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <button
+                                                key={star}
+                                                type="button"
+                                                onClick={() => setReviewForm({ ...reviewForm, overall_rating: star })}
+                                                className={`text-3xl transition-transform hover:scale-110 ${reviewForm.overall_rating >= star ? 'text-amber-400' : 'text-gray-200'}`}
+                                            >
+                                                ★
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Review Title</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Summarize your experience"
+                                        value={reviewForm.title}
+                                        onChange={e => setReviewForm({ ...reviewForm, title: e.target.value })}
+                                        className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:border-[#0B1A30]/20 font-medium text-sm text-[#0B1A30]"
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Detailed Review</label>
+                                    <textarea
+                                        rows="4"
+                                        placeholder="What did you like or dislike? How were the facilities and management?"
+                                        value={reviewForm.body}
+                                        onChange={e => setReviewForm({ ...reviewForm, body: e.target.value })}
+                                        className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:border-[#0B1A30]/20 font-medium text-sm text-[#0B1A30] resize-none"
+                                        required
+                                    />
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={submittingReview}
+                                    className="w-full py-4 bg-[#0B1A30] text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-gray-800 transition-all shadow-lg disabled:opacity-50"
+                                >
+                                    {submittingReview ? 'Submitting...' : 'Submit Review'}
+                                </button>
+                            </form>
+                        </div>
+                    </motion.div>
                 </div>
             )}
         </div>

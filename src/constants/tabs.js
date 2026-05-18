@@ -29,6 +29,7 @@ export const ADMIN_TABS = [
     { id: 'verifications', label: 'Owner Verifications', icon: FiShield },
     { id: 'bookings', label: 'All Bookings', icon: FiCalendar },
     { id: 'finance', label: 'Platform Finance', icon: FiDollarSign },
+    { id: 'reviews', label: 'Student Reviews', icon: FiBookmark },
     { id: 'support', label: 'Support Inbox', icon: FiMessageSquare },
     { id: 'settings', label: 'System Settings', icon: FiSettings },
 ];

@@ -31,6 +31,22 @@ function StatCard({ label, value, badge, badgeColor, borderClass, prefix }) {
 
 export default function AdminDashboard() {
     const { user } = useAuth();
+    
+    const formatDate = (dateString) => {
+        if (!dateString) return '—';
+        if (typeof dateString === 'string' && (dateString.includes('Invalid') || dateString.includes('NaN'))) return '—';
+        try {
+            let formattedStr = dateString;
+            if (typeof dateString === 'string' && dateString.includes(' ') && !dateString.includes('T')) {
+                formattedStr = dateString.replace(' ', 'T');
+            }
+            const d = new Date(formattedStr);
+            if (isNaN(d.getTime())) return '—';
+            return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        } catch (e) {
+            return '—';
+        }
+    };
     const [activeTab, setActiveTab] = useState('dashboard');
     console.log('[AdminDashboard] Component Rendering...', { userRole: user?.role, activeTab });
     const [users, setUsers] = useState([]);
@@ -64,6 +80,8 @@ export default function AdminDashboard() {
     const [isHostelEditModalOpen, setIsHostelEditModalOpen] = useState(false);
     const [hostelSearchTerm, setHostelSearchTerm] = useState('');
     const [bookingFilter, setBookingFilter] = useState('all');
+    const [ownerVerificationFilter, setOwnerVerificationFilter] = useState('pending');
+    const [hostelVerificationFilter, setHostelVerificationFilter] = useState('pending');
     
     // New States for Support Inbox
     const [supportInquiries, setSupportInquiries] = useState([]);
@@ -71,6 +89,82 @@ export default function AdminDashboard() {
     const [selectedInquiry, setSelectedInquiry] = useState(null);
     const [inquiryMessages, setInquiryMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
+
+    // System Settings States & Handlers
+    const [commissionSettings, setCommissionSettings] = useState({ mode: 'percentage', rate: 10.0, fixedFee: 0 });
+    const [savingSettings, setSavingSettings] = useState(false);
+    const [loadingSettings, setLoadingSettings] = useState(false);
+
+    const fetchCommissionRate = async () => {
+        setLoadingSettings(true);
+        try {
+            const res = await api.get('/admin/settings/commission');
+            if (res.data) {
+                setCommissionSettings({
+                    mode: res.data.mode || 'percentage',
+                    rate: res.data.rate || 10.0,
+                    fixedFee: res.data.fixedFee || 0
+                });
+            }
+        } catch (error) {
+            console.error('Failed to fetch commission settings', error);
+        } finally {
+            setLoadingSettings(false);
+        }
+    };
+
+    const handleSaveCommissionRate = async (e) => {
+        e.preventDefault();
+        setSavingSettings(true);
+        try {
+            await api.patch('/admin/settings/commission', { 
+                mode: commissionSettings.mode,
+                rate: parseFloat(commissionSettings.rate),
+                fixedFee: parseFloat(commissionSettings.fixedFee)
+            });
+            toast.success('Commission settings updated successfully');
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to update commission rate');
+        } finally {
+            setSavingSettings(false);
+        }
+    };
+
+    // Student Reviews States & Handlers
+    const [reviews, setReviews] = useState([]);
+    const [loadingReviews, setLoadingReviews] = useState(false);
+
+    const fetchReviews = async () => {
+        setLoadingReviews(true);
+        try {
+            const res = await api.get('/reviews/admin/all');
+            setReviews(res.data?.data || []);
+        } catch (error) {
+            toast.error('Failed to load reviews');
+        } finally {
+            setLoadingReviews(false);
+        }
+    };
+
+    const handleApproveReview = async (reviewId) => {
+        try {
+            await api.patch(`/reviews/${reviewId}/approve`);
+            toast.success('Review approved successfully');
+            fetchReviews();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to approve review');
+        }
+    };
+
+    const handleRejectReview = async (reviewId) => {
+        try {
+            await api.patch(`/reviews/${reviewId}/reject`);
+            toast.success('Review rejected successfully');
+            fetchReviews();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to reject review');
+        }
+    };
 
     const location = useLocation();
 
@@ -97,8 +191,10 @@ export default function AdminDashboard() {
             case 'verifications': fetchPendingOwners(); break;
             case 'finance': fetchFinanceStats(); break;
             case 'support': fetchSupportInquiries(); break;
+            case 'settings': fetchCommissionRate(); break;
+            case 'reviews': fetchReviews(); break;
         }
-    }, [activeTab]);
+    }, [activeTab, ownerVerificationFilter, hostelVerificationFilter]);
 
     const fetchSupportInquiries = async () => {
         setLoadingInquiries(true);
@@ -163,11 +259,16 @@ export default function AdminDashboard() {
     const fetchPendingHostels = async () => {
         setLoadingHostels(true);
         try {
-            const response = await api.get('/hostels/pending');
-            const hostelsData = response.data?.data || [];
-            setPendingHostels(Array.isArray(hostelsData) ? hostelsData : []);
+            const [pendingRes, historyRes] = await Promise.all([
+                api.get('/hostels/pending'),
+                api.get('/hostels/history')
+            ]);
+            const pending = pendingRes.data?.data || [];
+            const history = historyRes.data?.data || [];
+            const combined = [...pending, ...history];
+            setPendingHostels(combined);
         } catch (error) {
-            toast.error('Failed to load pending hostels');
+            toast.error('Failed to load hostels for verification');
         } finally {
             setLoadingHostels(false);
         }
@@ -296,10 +397,11 @@ export default function AdminDashboard() {
     const fetchPendingOwners = async () => {
         setLoadingOwners(true);
         try {
-            const response = await api.get('/admin/owners/pending');
-            setPendingOwners(response.data?.data || []);
+            const response = await api.get(`/admin/owners/pending?status=${ownerVerificationFilter}`);
+            const resData = response.data?.data || response.data || [];
+            setPendingOwners(Array.isArray(resData) ? resData : []);
         } catch (error) {
-            toast.error('Failed to load pending owners');
+            toast.error('Failed to load owner verification requests');
         } finally {
             setLoadingOwners(false);
         }
@@ -909,10 +1011,21 @@ export default function AdminDashboard() {
 
             {activeTab === 'hostels' && (
                 <div className="space-y-8 animate-fade-in pb-8">
-                    <div className="flex justify-between items-center">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <h2 className="text-3xl font-[900] text-[#0B1A30] tracking-tight">Hostel Verifications</h2>
-                            <p className="text-gray-500 mt-1 font-medium">Review and approve new property listings</p>
+                            <p className="text-gray-500 mt-1 font-medium">Review and approve property listings</p>
+                        </div>
+                        <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
+                            {['pending', 'approved', 'rejected', 'all'].map(s => (
+                                <button 
+                                    key={s}
+                                    onClick={() => setHostelVerificationFilter(s)}
+                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all shrink-0 ${hostelVerificationFilter === s ? 'bg-[#0B1A30] text-white border-[#0B1A30]' : 'bg-white text-gray-400 border-gray-100 hover:border-gray-300'}`}
+                                >
+                                    {s}
+                                </button>
+                            ))}
                         </div>
                     </div>
 
@@ -924,15 +1037,28 @@ export default function AdminDashboard() {
                                         <th className="px-8 py-6">Hostel Details</th>
                                         <th className="px-8 py-6">Owner</th>
                                         <th className="px-8 py-6">Location</th>
+                                        <th className="px-8 py-6">Status</th>
                                         <th className="px-8 py-6 text-right">Verification</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {loadingHostels ? (
-                                        <tr><td colSpan="4" className="px-8 py-20 text-center font-bold text-gray-400 animate-pulse uppercase tracking-widest text-xs">Accessing Pending Submissions...</td></tr>
-                                    ) : pendingHostels.length === 0 ? (
-                                        <tr><td colSpan="4" className="px-8 py-20 text-center font-bold text-gray-400 uppercase tracking-widest text-xs">No Pending Requests</td></tr>
-                                    ) : pendingHostels.map((h) => (
+                                        <tr><td colSpan="5" className="px-8 py-20 text-center font-bold text-gray-400 animate-pulse uppercase tracking-widest text-xs">Accessing Submissions...</td></tr>
+                                    ) : pendingHostels.filter(h => {
+                                        if (hostelVerificationFilter === 'all') return true;
+                                        if (hostelVerificationFilter === 'pending') return ['submitted', 'documents_pending', 'inspection_scheduled', 'under_review'].includes(h.status);
+                                        if (hostelVerificationFilter === 'approved') return h.status === 'verified';
+                                        if (hostelVerificationFilter === 'rejected') return h.status === 'rejected';
+                                        return true;
+                                    }).length === 0 ? (
+                                        <tr><td colSpan="5" className="px-8 py-20 text-center font-bold text-gray-400 uppercase tracking-widest text-xs">No Requests Found ({hostelVerificationFilter})</td></tr>
+                                    ) : pendingHostels.filter(h => {
+                                        if (hostelVerificationFilter === 'all') return true;
+                                        if (hostelVerificationFilter === 'pending') return ['submitted', 'documents_pending', 'inspection_scheduled', 'under_review'].includes(h.status);
+                                        if (hostelVerificationFilter === 'approved') return h.status === 'verified';
+                                        if (hostelVerificationFilter === 'rejected') return h.status === 'rejected';
+                                        return true;
+                                    }).map((h) => (
                                         <tr key={h.id} className="hover:bg-gray-50/50 transition-colors group">
                                             <td className="px-8 py-6">
                                                 <div className="flex items-center gap-4">
@@ -965,6 +1091,15 @@ export default function AdminDashboard() {
                                             <td className="px-8 py-6">
                                                 <p className="text-sm font-bold text-[#0B1A30]">{h.city}</p>
                                                 <p className="text-[10px] text-gray-400 font-bold uppercase">{h.area}</p>
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider ${
+                                                    h.status === 'verified' ? 'bg-emerald-50 text-emerald-600' :
+                                                    h.status === 'rejected' ? 'bg-red-50 text-red-600' :
+                                                    'bg-amber-50 text-amber-600'
+                                                }`}>
+                                                    {h.status === 'submitted' ? 'pending' : h.status}
+                                                </span>
                                             </td>
                                             <td className="px-8 py-6 text-right">
                                                 <button 
@@ -1062,6 +1197,93 @@ export default function AdminDashboard() {
                                                         Owner: {selectedHostelForReview.owner?.ownerProfile?.verificationStatus || 'Pending'}
                                                     </span>
                                                 </div>
+
+                                                {/* Verification Documents if owner profile has verificationRequest */}
+                                                {selectedHostelForReview.owner?.ownerProfile?.verificationRequest && (
+                                                    <div className="mt-4 p-4 bg-gray-50 rounded-2xl space-y-4">
+                                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Owner Documents</p>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            {selectedHostelForReview.owner.ownerProfile.verificationRequest.cnicFrontUrl && (
+                                                                <div>
+                                                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">CNIC Front</p>
+                                                                    <a 
+                                                                        href={fixCloudinaryUrl(selectedHostelForReview.owner.ownerProfile.verificationRequest.cnicFrontUrl)} 
+                                                                        target="_blank" 
+                                                                        rel="noreferrer"
+                                                                        className="block group relative rounded-xl overflow-hidden border border-gray-200 aspect-video bg-white"
+                                                                    >
+                                                                        <img src={fixCloudinaryUrl(selectedHostelForReview.owner.ownerProfile.verificationRequest.cnicFrontUrl)} className="w-full h-full object-cover group-hover:scale-105 transition-transform" alt="CNIC Front" />
+                                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                            <FiEye className="text-white" size={16} />
+                                                                        </div>
+                                                                    </a>
+                                                                </div>
+                                                            )}
+                                                            {selectedHostelForReview.owner.ownerProfile.verificationRequest.cnicBackUrl && (
+                                                                <div>
+                                                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">CNIC Back</p>
+                                                                    <a 
+                                                                        href={fixCloudinaryUrl(selectedHostelForReview.owner.ownerProfile.verificationRequest.cnicBackUrl)} 
+                                                                        target="_blank" 
+                                                                        rel="noreferrer"
+                                                                        className="block group relative rounded-xl overflow-hidden border border-gray-200 aspect-video bg-white"
+                                                                    >
+                                                                        <img src={fixCloudinaryUrl(selectedHostelForReview.owner.ownerProfile.verificationRequest.cnicBackUrl)} className="w-full h-full object-cover group-hover:scale-105 transition-transform" alt="CNIC Back" />
+                                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                            <FiEye className="text-white" size={16} />
+                                                                        </div>
+                                                                    </a>
+                                                                </div>
+                                                            )}
+                                                            {selectedHostelForReview.owner.ownerProfile.verificationRequest.propertyOwnershipUrl && (
+                                                                <div>
+                                                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Deed/Agreement</p>
+                                                                    <a 
+                                                                        href={fixCloudinaryUrl(selectedHostelForReview.owner.ownerProfile.verificationRequest.propertyOwnershipUrl)} 
+                                                                        target="_blank" 
+                                                                        rel="noreferrer"
+                                                                        className="block group relative rounded-xl overflow-hidden border border-gray-200 aspect-video bg-white"
+                                                                    >
+                                                                        {selectedHostelForReview.owner.ownerProfile.verificationRequest.propertyOwnershipUrl.toLowerCase().endsWith('.pdf') ? (
+                                                                            <div className="w-full h-full flex flex-col items-center justify-center">
+                                                                                <FiFileText size={24} className="text-amber-500" />
+                                                                                <span className="text-[8px] font-bold mt-1 text-[#0B1A30]">View PDF</span>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <img src={fixCloudinaryUrl(selectedHostelForReview.owner.ownerProfile.verificationRequest.propertyOwnershipUrl)} className="w-full h-full object-cover group-hover:scale-105 transition-transform" alt="Deed" />
+                                                                        )}
+                                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                            <FiEye className="text-white" size={16} />
+                                                                        </div>
+                                                                    </a>
+                                                                </div>
+                                                            )}
+                                                            {selectedHostelForReview.owner.ownerProfile.verificationRequest.utilityBillUrl && (
+                                                                <div>
+                                                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Utility Bill</p>
+                                                                    <a 
+                                                                        href={fixCloudinaryUrl(selectedHostelForReview.owner.ownerProfile.verificationRequest.utilityBillUrl)} 
+                                                                        target="_blank" 
+                                                                        rel="noreferrer"
+                                                                        className="block group relative rounded-xl overflow-hidden border border-gray-200 aspect-video bg-white"
+                                                                    >
+                                                                        {selectedHostelForReview.owner.ownerProfile.verificationRequest.utilityBillUrl.toLowerCase().endsWith('.pdf') ? (
+                                                                            <div className="w-full h-full flex flex-col items-center justify-center">
+                                                                                <FiFileText size={24} className="text-emerald-500" />
+                                                                                <span className="text-[8px] font-bold mt-1 text-[#0B1A30]">View PDF</span>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <img src={fixCloudinaryUrl(selectedHostelForReview.owner.ownerProfile.verificationRequest.utilityBillUrl)} className="w-full h-full object-cover group-hover:scale-105 transition-transform" alt="Utility Bill" />
+                                                                        )}
+                                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                            <FiEye className="text-white" size={16} />
+                                                                        </div>
+                                                                    </a>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -1090,10 +1312,21 @@ export default function AdminDashboard() {
             {/* Redundant modal removed */}
             {activeTab === 'verifications' && (
                 <div className="space-y-8 animate-fade-in pb-8">
-                    <div className="flex justify-between items-center">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <h2 className="text-3xl font-[900] text-[#0B1A30] tracking-tight">Owner Verification Requests</h2>
                             <p className="text-gray-500 mt-1 font-medium">Verify identity and property ownership of new owners</p>
+                        </div>
+                        <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
+                            {['pending', 'verified', 'rejected', 'all'].map(s => (
+                                <button 
+                                    key={s}
+                                    onClick={() => setOwnerVerificationFilter(s)}
+                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all shrink-0 ${ownerVerificationFilter === s ? 'bg-[#0B1A30] text-white border-[#0B1A30]' : 'bg-white text-gray-400 border-gray-100 hover:border-gray-300'}`}
+                                >
+                                    {s === 'verified' ? 'Approved' : s}
+                                </button>
+                            ))}
                         </div>
                     </div>
 
@@ -1104,15 +1337,16 @@ export default function AdminDashboard() {
                                     <tr>
                                         <th className="px-8 py-6">Owner Name</th>
                                         <th className="px-8 py-6">Submission Date</th>
+                                        <th className="px-8 py-6">Documents</th>
                                         <th className="px-8 py-6">Status</th>
                                         <th className="px-8 py-6 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {loadingOwners ? (
-                                        <tr><td colSpan="4" className="px-8 py-20 text-center font-bold text-gray-400 animate-pulse uppercase tracking-widest text-xs">Accessing verification records...</td></tr>
+                                        <tr><td colSpan="5" className="px-8 py-20 text-center font-bold text-gray-400 animate-pulse uppercase tracking-widest text-xs">Accessing verification records...</td></tr>
                                     ) : pendingOwners.length === 0 ? (
-                                        <tr><td colSpan="4" className="px-8 py-20 text-center font-bold text-gray-400 uppercase tracking-widest text-xs">No pending requests found</td></tr>
+                                        <tr><td colSpan="5" className="px-8 py-20 text-center font-bold text-gray-400 uppercase tracking-widest text-xs">No verification requests found ({ownerVerificationFilter})</td></tr>
                                     ) : pendingOwners.map((req) => (
                                         <tr key={req.id} className="hover:bg-gray-50/50 transition-colors group">
                                             <td className="px-8 py-6">
@@ -1128,11 +1362,58 @@ export default function AdminDashboard() {
                                             </td>
                                             <td className="px-8 py-6">
                                                 <p className="text-sm font-bold text-[#0B1A30]">
-                                                    {new Date(req.createdAt || req.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                    {formatDate(req.createdAt || req.created_at)}
                                                 </p>
                                             </td>
                                             <td className="px-8 py-6">
-                                                <span className="px-3 py-1 rounded-lg bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-widest">
+                                                <div className="flex gap-2">
+                                                    <a 
+                                                        href={fixCloudinaryUrl(req.cnicFrontUrl || req.cnic_front_url)} 
+                                                        target="_blank" 
+                                                        rel="noreferrer" 
+                                                        className="w-8 h-8 rounded-lg overflow-hidden border border-gray-200 shadow-sm flex items-center justify-center bg-gray-50 hover:scale-110 transition-transform"
+                                                        title="CNIC Front"
+                                                    >
+                                                        {(req.cnicFrontUrl || req.cnic_front_url)?.toLowerCase().endsWith('.pdf') ? (
+                                                            <FiFileText size={14} className="text-primary-500" />
+                                                        ) : (
+                                                            <img src={fixCloudinaryUrl(req.cnicFrontUrl || req.cnic_front_url)} alt="CNIC F" className="w-full h-full object-cover" />
+                                                        )}
+                                                    </a>
+                                                    <a 
+                                                        href={fixCloudinaryUrl(req.cnicBackUrl || req.cnic_back_url)} 
+                                                        target="_blank" 
+                                                        rel="noreferrer" 
+                                                        className="w-8 h-8 rounded-lg overflow-hidden border border-gray-200 shadow-sm flex items-center justify-center bg-gray-50 hover:scale-110 transition-transform"
+                                                        title="CNIC Back"
+                                                    >
+                                                        {(req.cnicBackUrl || req.cnic_back_url)?.toLowerCase().endsWith('.pdf') ? (
+                                                            <FiFileText size={14} className="text-primary-500" />
+                                                        ) : (
+                                                            <img src={fixCloudinaryUrl(req.cnicBackUrl || req.cnic_back_url)} alt="CNIC B" className="w-full h-full object-cover" />
+                                                        )}
+                                                    </a>
+                                                    <a 
+                                                        href={fixCloudinaryUrl(req.propertyOwnershipUrl || req.property_ownership_url)} 
+                                                        target="_blank" 
+                                                        rel="noreferrer" 
+                                                        className="w-8 h-8 rounded-lg overflow-hidden border border-gray-200 shadow-sm flex items-center justify-center bg-gray-50 hover:scale-110 transition-transform"
+                                                        title="Deed"
+                                                    >
+                                                        {(req.propertyOwnershipUrl || req.property_ownership_url)?.toLowerCase().endsWith('.pdf') ? (
+                                                            <FiFileText size={14} className="text-amber-500" />
+                                                        ) : (
+                                                            <img src={fixCloudinaryUrl(req.propertyOwnershipUrl || req.property_ownership_url)} alt="Deed" className="w-full h-full object-cover" />
+                                                        )}
+                                                    </a>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider ${
+                                                    req.status === 'verified' ? 'bg-emerald-50 text-emerald-600' :
+                                                    req.status === 'rejected' ? 'bg-red-50 text-red-600' :
+                                                    'bg-amber-50 text-amber-600'
+                                                }`}>
                                                     {req.status}
                                                 </span>
                                             </td>
@@ -1484,7 +1765,200 @@ export default function AdminDashboard() {
                 </div>
             )}
 
-            {!['dashboard', 'users', 'hostels', 'all_hostels', 'bookings', 'finance', 'verifications', 'settings', 'support'].includes(activeTab) && (
+            {activeTab === 'settings' && (
+                <div className="space-y-8 animate-fade-in pb-8">
+                    <div>
+                        <h2 className="text-3xl font-[900] text-[#0B1A30] tracking-tight">System Settings</h2>
+                        <p className="text-gray-500 mt-1 font-medium">Configure global platform rules and fees</p>
+                    </div>
+
+                    <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden max-w-3xl">
+                        <div className="p-8 border-b border-gray-100 bg-gray-50/30">
+                            <h3 className="text-lg font-black text-[#0B1A30] uppercase tracking-tighter">Commission Setup</h3>
+                            <p className="text-xs text-gray-400 mt-1">Configure how platform fees are calculated for online payments</p>
+                        </div>
+                        <div className="p-8 space-y-8">
+                            
+                            {/* Commission Mode Selection */}
+                            <div>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 block">Commission Mode</label>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    {['percentage', 'fixed', 'hybrid'].map((m) => (
+                                        <button
+                                            key={m}
+                                            onClick={() => setCommissionSettings({ ...commissionSettings, mode: m })}
+                                            className={`px-4 py-4 rounded-2xl border text-sm font-bold uppercase tracking-widest transition-all ${
+                                                commissionSettings.mode === m 
+                                                    ? 'bg-[#0B1A30] border-[#0B1A30] text-white' 
+                                                    : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
+                                            }`}
+                                        >
+                                            {m}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                {/* Percentage Rate Input */}
+                                <div className={commissionSettings.mode === 'fixed' ? 'opacity-30 pointer-events-none' : ''}>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Percentage Rate (%)</label>
+                                    <div className="relative">
+                                        <input
+                                            type="number"
+                                            value={commissionSettings.rate}
+                                            onChange={(e) => setCommissionSettings({ ...commissionSettings, rate: e.target.value })}
+                                            disabled={loadingSettings || savingSettings}
+                                            className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:border-[#0B1A30]/20 font-bold text-lg text-[#0B1A30]"
+                                            min="0"
+                                            max="100"
+                                            step="0.1"
+                                        />
+                                        <span className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 font-black text-lg">%</span>
+                                    </div>
+                                </div>
+
+                                {/* Fixed Fee Input */}
+                                <div className={commissionSettings.mode === 'percentage' ? 'opacity-30 pointer-events-none' : ''}>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Fixed Base Fee (PKR)</label>
+                                    <div className="relative">
+                                        <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 font-black text-[10px] uppercase tracking-widest">PKR</span>
+                                        <input
+                                            type="number"
+                                            value={commissionSettings.fixedFee}
+                                            onChange={(e) => setCommissionSettings({ ...commissionSettings, fixedFee: e.target.value })}
+                                            disabled={loadingSettings || savingSettings}
+                                            className="w-full pl-14 pr-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:border-[#0B1A30]/20 font-bold text-lg text-[#0B1A30]"
+                                            min="0"
+                                            step="100"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-4 border-t border-gray-100 flex justify-end">
+                                <button
+                                    onClick={handleSaveCommissionRate}
+                                    disabled={savingSettings || loadingSettings}
+                                    className="px-8 py-4 bg-[#0B1A30] hover:bg-gray-800 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-lg disabled:opacity-50 flex items-center gap-2"
+                                >
+                                    {savingSettings ? 'Saving...' : 'Update Settings'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {activeTab === 'reviews' && (
+                <div className="space-y-8 animate-fade-in pb-8">
+                    <div>
+                        <h2 className="text-3xl font-[900] text-[#0B1A30] tracking-tight">Student Reviews</h2>
+                        <p className="text-gray-500 mt-1 font-medium">Moderate and monitor hostel reviews submitted by students</p>
+                    </div>
+
+                    <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="p-8 border-b border-gray-100 bg-gray-50/30 flex items-center justify-between">
+                            <h3 className="text-lg font-black text-[#0B1A30] uppercase tracking-tighter">Review Moderation Registry</h3>
+                            <span className="text-[10px] bg-primary-50 text-primary-600 font-black px-3 py-1 rounded-full uppercase tracking-widest">
+                                {reviews.length} Total Submissions
+                            </span>
+                        </div>
+
+                        {loadingReviews ? (
+                            <div className="p-20 text-center">
+                                <div className="animate-spin w-8 h-8 border-2 border-[#0B1A30] border-t-transparent rounded-full mx-auto mb-4" />
+                                <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Accessing review database...</p>
+                            </div>
+                        ) : reviews.length === 0 ? (
+                            <div className="p-20 text-center">
+                                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <FiBookmark size={32} className="text-gray-200" />
+                                </div>
+                                <h4 className="text-lg font-black text-[#0B1A30] uppercase tracking-tighter mb-2">No Reviews Found</h4>
+                                <p className="text-sm text-gray-400 max-w-xs mx-auto font-medium">When students complete their stays, their hostel reviews will appear here for your moderation.</p>
+                            </div>
+                        ) : (
+                            <div className="divide-y divide-gray-100">
+                                {reviews.map((review) => (
+                                    <div key={review.id} className="p-8 hover:bg-gray-50/30 transition-colors flex flex-col md:flex-row md:items-start justify-between gap-6">
+                                        <div className="flex-1 space-y-4">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center text-primary-700 font-black text-lg">
+                                                    {review.student_name?.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-3">
+                                                        <h4 className="text-base font-black text-[#0B1A30]">{review.student_name}</h4>
+                                                        <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest ${
+                                                            review.status === 'pending' ? 'bg-amber-50 text-amber-600' :
+                                                            review.status === 'approved' ? 'bg-emerald-50 text-emerald-600' :
+                                                            'bg-red-50 text-red-600'
+                                                        }`}>
+                                                            {review.status}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">{review.hostel_name} • Duration: {review.stay_duration_months} Months</p>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <h5 className="text-sm font-black text-[#0B1A30]">{review.title}</h5>
+                                                <p className="text-sm text-gray-600 leading-relaxed mt-1 font-medium">{review.body}</p>
+                                            </div>
+
+                                            {/* Sub-ratings grid */}
+                                            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 pt-2">
+                                                {[
+                                                    { label: 'Overall', val: review.overall_rating },
+                                                    { label: 'Cleanliness', val: review.cleanliness },
+                                                    { label: 'Food', val: review.food_quality },
+                                                    { label: 'Safety', val: review.safety_security },
+                                                    { label: 'Facilities', val: review.facilities_match },
+                                                    { label: 'Owner', val: review.owner_management },
+                                                    { label: 'Value', val: review.value_for_money }
+                                                ].map((sub, idx) => (
+                                                    <div key={idx} className="bg-gray-50 border border-gray-100 rounded-lg p-2 text-center">
+                                                        <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">{sub.label}</p>
+                                                        <p className="text-xs font-black text-[#0B1A30] mt-0.5">{sub.val}/5</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col items-end gap-3 shrink-0">
+                                            <span className="text-[10px] text-gray-400 font-bold">
+                                                {new Date(review.created_at || review.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                            </span>
+                                            
+                                            {review.status === 'pending' ? (
+                                                <div className="flex gap-2 w-full md:w-auto">
+                                                    <button
+                                                        onClick={() => handleRejectReview(review.id)}
+                                                        className="px-4 py-2 border border-gray-100 text-[10px] font-black text-gray-500 hover:text-red-600 hover:bg-red-50 hover:border-red-100 rounded-xl uppercase tracking-widest transition-all"
+                                                    >
+                                                        Reject
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleApproveReview(review.id)}
+                                                        className="px-4 py-2 bg-[#0B1A30] text-white text-[10px] font-black hover:bg-gray-800 rounded-xl uppercase tracking-widest shadow-md transition-all"
+                                                    >
+                                                        Approve
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-100">Moderated</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {!['dashboard', 'users', 'hostels', 'all_hostels', 'bookings', 'finance', 'verifications', 'settings', 'support', 'reviews'].includes(activeTab) && (
                 <div className="flex flex-col items-center justify-center h-full p-20 text-gray-400 animate-fade-in">
                     <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-6 border border-gray-100">
                         <FiGrid size={24} className="opacity-20" />

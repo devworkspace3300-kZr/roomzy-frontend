@@ -29,6 +29,9 @@ export default function HostelDetails() {
     const [duration, setDuration] = useState(3);
     const [booking, setBooking] = useState(false);
 
+    const [reviews, setReviews] = useState([]);
+    const [loadingReviews, setLoadingReviews] = useState(false);
+
     useEffect(() => {
         setLoading(true);
         api.get(`/hostels/${id}`)
@@ -39,6 +42,14 @@ export default function HostelDetails() {
             })
             .catch(() => setHostel(null))
             .finally(() => setLoading(false));
+
+        setLoadingReviews(true);
+        api.get(`/reviews/hostel/${id}`)
+            .then(res => {
+                setReviews(res.data?.data || []);
+            })
+            .catch(() => {})
+            .finally(() => setLoadingReviews(false));
     }, [id]);
 
     const handleBook = async () => {
@@ -232,6 +243,87 @@ export default function HostelDetails() {
                                                         </span>
                                                     )}
                                                 </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Student Reviews Section */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between border-t border-border-light pt-6">
+                                <h2 className="text-lg font-semibold text-text-primary">
+                                    Student Reviews ({reviews.length})
+                                </h2>
+                                {reviews.length > 0 && (
+                                    <div className="flex items-center gap-1.5 text-sm font-bold text-[#0B1A30]">
+                                        <FiStar size={16} className="text-amber-500 fill-amber-500" />
+                                        <span>
+                                            {(reviews.reduce((acc, r) => acc + Number(r.overall_rating), 0) / reviews.length).toFixed(1)} / 5.0
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {loadingReviews ? (
+                                <div className="p-6 text-center text-text-muted">
+                                    <div className="animate-spin w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full mx-auto mb-2" />
+                                    <p className="text-xs">Loading reviews...</p>
+                                </div>
+                            ) : reviews.length === 0 ? (
+                                <div className="p-6 rounded-2xl bg-gray-50 border border-border-light text-center text-text-muted">
+                                    <FiStar size={24} className="mx-auto mb-2 opacity-30 animate-pulse" />
+                                    <p className="text-sm font-medium">No reviews yet. Be the first to leave a review after your stay!</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {reviews.map((rev) => (
+                                        <div key={rev.id} className="p-5 rounded-2xl border border-border-light bg-white space-y-3 shadow-sm hover:border-primary-200 transition-all">
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden font-black text-primary-700">
+                                                        {rev.student_avatar ? (
+                                                            <img src={rev.student_avatar} alt="" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            rev.student_name?.charAt(0) || 'S'
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-semibold text-sm text-text-primary">{rev.student_name}</p>
+                                                        <p className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Stayed {rev.stay_duration_months} Months</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <FiStar
+                                                            key={i}
+                                                            size={13}
+                                                            className={i < rev.overall_rating ? "text-amber-400 fill-amber-400" : "text-gray-200"}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <h4 className="text-sm font-bold text-text-primary">{rev.title}</h4>
+                                                <p className="text-xs text-text-secondary leading-relaxed mt-1 font-medium">{rev.body}</p>
+                                            </div>
+
+                                            {/* Sub ratings mini pills */}
+                                            <div className="flex flex-wrap gap-2 pt-1">
+                                                {[
+                                                    { l: 'Cleanliness', v: rev.cleanliness },
+                                                    { l: 'Food', v: rev.food_quality },
+                                                    { l: 'Safety', v: rev.safety_security },
+                                                    { l: 'Facilities', v: rev.facilities_match },
+                                                    { l: 'Management', v: rev.owner_management },
+                                                    { l: 'Value', v: rev.value_for_money }
+                                                ].map((sub, idx) => (
+                                                    <span key={idx} className="px-2 py-0.5 rounded-md bg-gray-50 text-[9px] font-bold text-text-muted border border-border-light">
+                                                        {sub.l}: {sub.v}/5
+                                                    </span>
+                                                ))}
                                             </div>
                                         </div>
                                     ))}

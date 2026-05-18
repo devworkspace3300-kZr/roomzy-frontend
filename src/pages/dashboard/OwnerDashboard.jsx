@@ -55,6 +55,23 @@ export default function OwnerDashboard() {
     const [chatMessages, setChatMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
 
+    // Earnings tab states
+    const [earnings, setEarnings] = useState({ totalRevenue: 0, platformFees: 0, netPayout: 0, totalTransactions: 0, recentTransactions: [] });
+    const [loadingEarnings, setLoadingEarnings] = useState(false);
+
+    const fetchEarnings = async () => {
+        setLoadingEarnings(true);
+        try {
+            const response = await api.get('/payments/owner/earnings');
+            setEarnings(response.data || { totalRevenue: 0, platformFees: 0, netPayout: 0, totalTransactions: 0, recentTransactions: [] });
+        } catch (error) {
+            console.error('Failed to fetch earnings:', error);
+            toast.error('Failed to load earnings data');
+        } finally {
+            setLoadingEarnings(false);
+        }
+    };
+
     useEffect(() => {
         if (location.state?.activeTab) {
             setActiveTab(location.state.activeTab);
@@ -128,6 +145,21 @@ export default function OwnerDashboard() {
         }
     };
 
+    const handleConfirmMoveIn = async (id) => {
+        if (!window.confirm('Confirm that the student has arrived and successfully moved in? This will activate their residency.')) return;
+        
+        setStatusUpdating(id);
+        try {
+            await api.patch(`/bookings/owner/bookings/${id}/move-in`);
+            setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'active_stay' } : b));
+            toast.success('Move-in confirmed! Tenancy is now active.');
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to confirm move-in');
+        } finally {
+            setStatusUpdating(null);
+        }
+    };
+
     const fetchHostelRooms = async (hostelId) => {
         setLoadingRooms(true);
         try {
@@ -150,6 +182,9 @@ export default function OwnerDashboard() {
     useEffect(() => {
         if (activeTab === 'messages') {
             fetchConversations();
+        }
+        if (activeTab === 'earnings') {
+            fetchEarnings();
         }
     }, [activeTab]);
 
@@ -837,8 +872,17 @@ export default function OwnerDashboard() {
                                                                 Checkout
                                                             </button>
                                                         )}
-                                                        {(req.status === 'confirmed' || req.status === 'approved') && (
-                                                            <span className="text-[9px] font-bold text-amber-500 uppercase tracking-widest px-4 py-2 bg-amber-50 rounded-lg">Awaiting Move-in</span>
+                                                        {req.status === 'confirmed' && (
+                                                            <button 
+                                                                onClick={() => handleConfirmMoveIn(req.id)}
+                                                                disabled={statusUpdating === req.id}
+                                                                className="px-4 py-2 rounded-lg bg-emerald-500 text-[10px] font-black text-white hover:bg-emerald-600 transition-all uppercase tracking-widest disabled:opacity-50"
+                                                            >
+                                                                Confirm Move-in
+                                                            </button>
+                                                        )}
+                                                        {req.status === 'approved' && (
+                                                            <span className="text-[9px] font-bold text-amber-500 uppercase tracking-widest px-4 py-2 bg-amber-50 rounded-lg">Awaiting Payment</span>
                                                         )}
                                                     </div>
                                                 </td>
@@ -848,6 +892,209 @@ export default function OwnerDashboard() {
                                 </table>
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {activeTab === 'earnings' && (
+                <div className="space-y-8 animate-fade-in pb-8">
+                    <div>
+                        <h2 className="text-3xl font-[900] text-[#0B1A30] tracking-tight">Earnings & Payouts</h2>
+                        <p className="text-gray-500 mt-1 font-medium">Track your platform bookings revenue, commissions and net payout shares</p>
+                    </div>
+
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <StatCard 
+                            label="Gross Revenue" 
+                            value={earnings.totalRevenue?.toLocaleString()} 
+                            prefix="PKR"
+                            badge="Total Inflow" 
+                            badgeColor="text-primary-600 bg-primary-50" 
+                            borderClass="border-primary-500" 
+                        />
+                        <StatCard 
+                            label="Net Payouts" 
+                            value={earnings.netPayout?.toLocaleString()} 
+                            prefix="PKR"
+                            badge="Owner Share" 
+                            badgeColor="text-emerald-600 bg-emerald-50" 
+                            borderClass="border-emerald-500" 
+                        />
+                        <StatCard 
+                            label="Platform Fees" 
+                            value={earnings.platformFees?.toLocaleString()} 
+                            prefix="PKR"
+                            badge="Commission" 
+                            badgeColor="text-amber-600 bg-amber-50" 
+                            borderClass="border-amber-500" 
+                        />
+                    </div>
+
+                    <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="p-8 border-b border-gray-50 bg-gray-50/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <h3 className="text-md font-black text-[#0B1A30] uppercase tracking-tighter">Payments Ledger</h3>
+                            <span className="text-[10px] font-black text-[#0B1A30] bg-gray-100 px-3 py-1 rounded-full uppercase tracking-widest">
+                                {earnings.totalTransactions} Completed Settlements
+                            </span>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            {loadingEarnings ? (
+                                <div className="p-20 text-center text-gray-400">
+                                    <div className="animate-spin w-8 h-8 border-2 border-[#0B1A30] border-t-transparent rounded-full mx-auto mb-4" />
+                                    <p className="text-[10px] font-black uppercase tracking-widest">Accessing Ledger Balance...</p>
+                                </div>
+                            ) : earnings.recentTransactions?.length === 0 ? (
+                                <div className="p-20 text-center">
+                                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                                        <FiDollarSign size={32} className="text-gray-200" />
+                                    </div>
+                                    <h4 className="text-lg font-black text-[#0B1A30] uppercase tracking-tighter mb-2">No Settlements Recorded</h4>
+                                    <p className="text-sm text-gray-400 max-w-xs mx-auto font-medium">Financial logs and payout transactions will appear here once tenant payments are confirmed.</p>
+                                </div>
+                            ) : (
+                                <table className="w-full text-left">
+                                    <thead className="bg-[#F8F9FA] text-[#0B1A30] text-[9px] font-black uppercase tracking-[0.2em]">
+                                        <tr>
+                                            <th className="px-8 py-5">Tenant</th>
+                                            <th className="px-8 py-5">Property</th>
+                                            <th className="px-8 py-5">Date</th>
+                                            <th className="px-8 py-5">Reference</th>
+                                            <th className="px-8 py-5">Rent Inflow</th>
+                                            <th className="px-8 py-5 text-right">Net Share</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {earnings.recentTransactions.map((tx) => (
+                                            <tr key={tx.id} className="hover:bg-gray-50/30 transition-colors">
+                                                <td className="px-8 py-5 font-bold text-[#0B1A30] text-sm">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-black">
+                                                            {tx.student?.charAt(0)}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-bold text-[#0B1A30] text-sm">{tx.student}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-5">
+                                                    <p className="text-[#0B1A30] font-bold text-xs">{tx.hostel}</p>
+                                                </td>
+                                                <td className="px-8 py-5 text-gray-500 text-xs">
+                                                    {new Date(tx.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                </td>
+                                                <td className="px-8 py-5">
+                                                    <span className="font-mono text-[10px] bg-gray-50 text-gray-500 px-2.5 py-1 rounded-md border border-gray-100 font-bold uppercase tracking-wider">{tx.reference}</span>
+                                                </td>
+                                                <td className="px-8 py-5 text-gray-500 text-xs font-medium">
+                                                    PKR {tx.amount?.toLocaleString()} <span className="text-[9px] text-gray-400">(-{tx.fee?.toLocaleString()})</span>
+                                                </td>
+                                                <td className="px-8 py-5 text-right font-black text-emerald-600 text-sm">
+                                                    PKR {tx.payout?.toLocaleString()}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {activeTab === 'reports' && (
+                <div className="space-y-8 animate-fade-in pb-8">
+                    <div>
+                        <h2 className="text-3xl font-[900] text-[#0B1A30] tracking-tight">Analytics & Reports</h2>
+                        <p className="text-gray-500 mt-1 font-medium">Insights and performance of your properties</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <StatCard 
+                            label="Total Requests" 
+                            value={bookings?.length || 0}
+                            badge="All Time" badgeColor="bg-blue-100 text-blue-700"
+                            borderClass="border-blue-500"
+                        />
+                        <StatCard 
+                            label="Active Tenants" 
+                            value={activeStays?.length || 0}
+                            badge="Current" badgeColor="bg-emerald-100 text-emerald-700"
+                            borderClass="border-emerald-500"
+                        />
+                        <StatCard 
+                            label="Total Revenue" 
+                            value={(earnings?.totalRevenue || 0).toLocaleString()}
+                            prefix="PKR"
+                            badge="All Time" badgeColor="bg-amber-100 text-amber-700"
+                            borderClass="border-amber-500"
+                        />
+                        <StatCard 
+                            label="Platform Fees" 
+                            value={(earnings?.platformFees || 0).toLocaleString()}
+                            prefix="PKR"
+                            badge="Deducted" badgeColor="bg-red-100 text-red-700"
+                            borderClass="border-red-500"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                        {/* Booking Status Breakdown */}
+                        <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100">
+                            <h3 className="text-lg font-black text-[#0B1A30] uppercase tracking-tighter mb-6">Booking Conversion</h3>
+                            <div className="space-y-4">
+                                {['pending', 'approved', 'confirmed', 'cancelled', 'rejected'].map(status => {
+                                    const count = bookings?.filter(b => b.status === status).length || 0;
+                                    const percentage = bookings?.length ? Math.round((count / bookings.length) * 100) : 0;
+                                    const colors = {
+                                        pending: 'bg-amber-500', approved: 'bg-blue-500', confirmed: 'bg-emerald-500', 
+                                        cancelled: 'bg-gray-400', rejected: 'bg-red-500'
+                                    };
+                                    return (
+                                        <div key={status}>
+                                            <div className="flex justify-between items-end mb-2">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{status}</span>
+                                                <span className="text-sm font-bold text-[#0B1A30]">{count} <span className="text-xs text-gray-400 font-medium ml-1">({percentage}%)</span></span>
+                                            </div>
+                                            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                                                <div className={`h-full rounded-full ${colors[status]}`} style={{ width: `${percentage}%` }} />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Recent Payouts Summary */}
+                        <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100">
+                            <h3 className="text-lg font-black text-[#0B1A30] uppercase tracking-tighter mb-6">Settlement Overview</h3>
+                            {loadingEarnings ? (
+                                <div className="animate-pulse space-y-4">
+                                    <div className="h-4 bg-gray-200 rounded w-full"></div>
+                                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Net Processed</span>
+                                        <span className="text-xl font-black text-emerald-600">PKR {(earnings?.netPayout || 0).toLocaleString()}</span>
+                                    </div>
+                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Recent Transactions</p>
+                                    <div className="space-y-3">
+                                        {earnings?.recentTransactions?.slice(0, 3).map((tx, idx) => (
+                                            <div key={idx} className="flex justify-between items-center text-sm border-b border-gray-50 pb-3 last:border-0">
+                                                <div>
+                                                    <p className="font-bold text-[#0B1A30]">{tx.student}</p>
+                                                    <p className="text-[10px] text-gray-400 font-medium">{new Date(tx.date).toLocaleDateString('en-GB')}</p>
+                                                </div>
+                                                <span className="font-black text-emerald-500">+ PKR {tx.payout?.toLocaleString()}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
