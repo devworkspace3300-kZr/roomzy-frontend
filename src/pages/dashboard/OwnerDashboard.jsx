@@ -40,6 +40,7 @@ export default function OwnerDashboard() {
     const [myHostels, setMyHostels] = useState([]);
     const [loadingHostels, setLoadingHostels] = useState(true);
     const [bookings, setBookings] = useState([]);
+    const activeStays = bookings?.filter(b => b.status === 'active_stay' || b.status === 'confirmed') || [];
     const [loadingBookings, setLoadingBookings] = useState(true);
     const [selectedHostel, setSelectedHostel] = useState(null);
     const [hostelRooms, setHostelRooms] = useState([]);
