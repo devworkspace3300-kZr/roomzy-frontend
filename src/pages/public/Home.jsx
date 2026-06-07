@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiSearch, FiMapPin, FiShield, FiCheckCircle, FiUsers, FiArrowRight, FiStar } from 'react-icons/fi';
@@ -103,6 +103,16 @@ export default function Home() {
             }
         };
         fetchMetadata();
+
+        // Fetch testimonials
+        api.get('/reviews/public/testimonials')
+            .then(res => {
+                const fetched = res.data?.data || res.data || [];
+                if (Array.isArray(fetched) && fetched.length > 0) {
+                    setTestimonials(fetched);
+                }
+            })
+            .catch(() => {});
     }, []);
 
     const handleSearch = (e) => {
@@ -614,9 +624,17 @@ export default function Home() {
                                     </div>
                                     <p className="text-sm text-text-secondary leading-relaxed flex-1">&ldquo;{t.text}&rdquo;</p>
                                     <div className="flex items-center gap-3 mt-5 pt-5 border-t border-border-light">
-                                        <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-white text-xs font-bold">
-                                            {t.avatar}
-                                        </div>
+                                        {t.avatar && (t.avatar.startsWith('http') || t.avatar.startsWith('/')) ? (
+                                            <img
+                                                src={t.avatar}
+                                                alt={t.name}
+                                                className="w-10 h-10 rounded-full object-cover shrink-0"
+                                            />
+                                        ) : (
+                                            <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-white text-xs font-bold shrink-0">
+                                                {t.avatar || t.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                                            </div>
+                                        )}
                                         <div>
                                             <p className="font-semibold text-sm text-text-primary">{t.name}</p>
                                             <p className="text-xs text-text-muted">{t.university}</p>
@@ -625,6 +643,116 @@ export default function Home() {
                                 </div>
                             </ScrollReveal>
                         ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ===== DOWNLOAD APP SECTION ===== */}
+            <section className="py-20 bg-[#0B1A30] text-white overflow-hidden relative">
+                {/* Decorative gradients */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary-500/10 rounded-full blur-[100px] pointer-events-none" />
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <div className="grid lg:grid-cols-2 gap-12 items-center">
+                        <ScrollReveal direction="left">
+                            <div className="text-center lg:text-left flex flex-col items-center lg:items-start">
+                                <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/10 text-primary-300 text-xs font-bold uppercase tracking-[0.15em] mb-6">
+                                    Roomzy Mobile
+                                </span>
+                                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
+                                    Take Roomzy <br /> Anywhere You Go
+                                </h2>
+                                <p className="text-gray-300 text-base sm:text-lg mt-6 max-w-lg mx-auto lg:mx-0 leading-relaxed font-medium">
+                                    Find and manage your verified hostel stay from your smartphone. Install the Android application, run our Progressive Web App (PWA) on iOS, or download the app package directly.
+                                </p>
+                                
+                                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 mt-10">
+                                    {/* Google Play Store Badge */}
+                                    <a
+                                        href="https://play.google.com/store"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="h-14 bg-black border border-white/10 hover:border-white/30 transition-all rounded-xl px-4 flex items-center gap-3 shadow-lg group hover:scale-[1.02]"
+                                    >
+                                        <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="currentColor">
+                                            <path d="M5,3.22V20.78c0,0.37,0.19,0.72,0.52,0.9l9.31-9.3L5.52,3.08C5.19,3.26,5,3.61,5,3.22z M15.65,11.66l2.83-2.83L6.96,2.2c-0.29-0.16-0.65-0.12-0.9,0.09L15.65,11.66z M16.36,12.38L6.06,22.68c0.25,0.21,0.61,0.25,0.9,0.09l11.52-6.65L16.36,12.38z M22.25,11.83l-3.2,1.85l-2.12-2.12l2.12-2.12l3.2,1.85c0.41,0.24,0.41,0.85,0,1.09z" />
+                                        </svg>
+                                        <div className="text-left leading-none">
+                                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Get it on</span>
+                                            <span className="text-sm font-extrabold text-white">Google Play</span>
+                                        </div>
+                                    </a>
+
+                                    {/* Apple App Store Badge */}
+                                    <a
+                                        href="https://www.apple.com/app-store/"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="h-14 bg-black border border-white/10 hover:border-white/30 transition-all rounded-xl px-4 flex items-center gap-3 shadow-lg group hover:scale-[1.02]"
+                                    >
+                                        <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="currentColor">
+                                            <path d="M18.71,19.5C17.88,20.74,17,21.95,15.66,21.97C14.32,22,13.89,21.18,12.37,21.18C10.84,21.18,10.37,21.95,9.1,22C7.79,22.05,6.8,20.68,5.96,19.47C4.25,17,2.94,12.45,4.7,9.39C5.57,7.87,7.13,6.91,8.82,6.88C10.1,6.86,11.32,7.75,12.11,7.75C12.89,7.75,14.37,6.68,15.92,6.84C16.57,6.87,18.39,7.1,19.56,8.82C19.47,8.88,17.39,10.1,17.41,12.63C17.44,15.65,20.06,16.66,20.1,16.67C20.08,16.74,19.67,18.11,18.71,19.5M15.97,4.17C16.63,3.37,17.07,2.28,16.95,1C16,1.04,14.9,1.6,14.24,2.38C13.68,3.04,13.19,4.14,13.34,5.39C14.39,5.47,15.4,4.88,15.97,4.17Z" />
+                                        </svg>
+                                        <div className="text-left leading-none">
+                                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Download on the</span>
+                                            <span className="text-sm font-extrabold text-white">App Store</span>
+                                        </div>
+                                    </a>
+
+                                    {/* Direct APK Link */}
+                                    <a
+                                        href="/app-release.apk"
+                                        download
+                                        className="h-14 bg-primary-600 hover:bg-primary-700 transition-all rounded-xl px-5 flex items-center gap-2.5 shadow-lg group hover:scale-[1.02]"
+                                    >
+                                        <svg viewBox="0 0 24 24" className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                        </svg>
+                                        <div className="text-left leading-none">
+                                            <span className="text-[10px] text-primary-200 font-bold uppercase tracking-wider block">Direct Install</span>
+                                            <span className="text-sm font-extrabold text-white">Download APK</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </ScrollReveal>
+
+                        <ScrollReveal direction="right" className="hidden lg:flex justify-center relative">
+                            {/* App Screenshot Mockup Wrapper */}
+                            <div className="w-[280px] h-[540px] bg-slate-950 rounded-[2.5rem] border-8 border-slate-800 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] overflow-hidden relative flex flex-col">
+                                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-28 h-5 bg-slate-800 rounded-full z-20 flex items-center justify-center">
+                                    <div className="w-10 h-1 bg-slate-900 rounded-full" />
+                                </div>
+                                <div className="flex-1 bg-[#173663] p-4 pt-10 flex flex-col justify-between relative">
+                                    <div className="space-y-4">
+                                        <div className="h-5 w-14 bg-white/10 rounded-full" />
+                                        <h3 className="text-white font-extrabold text-xl leading-tight">Find, Book, <br /> & Stay</h3>
+                                        <div className="h-32 bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col justify-between">
+                                            <div className="flex justify-between items-start">
+                                                <div className="h-5 w-20 bg-white/20 rounded-md" />
+                                                <div className="h-5 w-6 bg-white/20 rounded-full" />
+                                            </div>
+                                            <div className="h-7 w-full bg-white rounded-lg flex items-center px-3 justify-between">
+                                                <span className="text-[9px] text-gray-400 font-bold">Search Abbottabad...</span>
+                                                <div className="w-4 h-4 rounded bg-[#173663]" />
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="space-y-2">
+                                            <div className="h-2 w-12 bg-white/20 rounded" />
+                                            <div className="flex gap-2">
+                                                <div className="h-16 w-1/2 bg-white/5 border border-white/10 rounded-xl" />
+                                                <div className="h-16 w-1/2 bg-white/5 border border-white/10 rounded-xl" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="h-8 bg-white/10 rounded-xl flex items-center justify-around">
+                                        <div className="w-4 h-4 rounded-full bg-white/30" />
+                                        <div className="w-4 h-4 rounded-full bg-white/30" />
+                                        <div className="w-4 h-4 rounded-full bg-white/30" />
+                                    </div>
+                                </div>
+                            </div>
+                        </ScrollReveal>
                     </div>
                 </div>
             </section>
