@@ -29,8 +29,33 @@ export default function Home() {
     const [showInstallModal, setShowInstallModal] = useState(false);
     const [showApkBanner, setShowApkBanner] = useState(true);
     const [apkDownloading, setApkDownloading] = useState(false);
+    const [isAppMode, setIsAppMode] = useState(false);
 
     useEffect(() => {
+        // Detect if running inside Capacitor native app or installed standalone PWA
+        const isCapacitor = !!window.Capacitor || 
+                            window.location.protocol === 'capacitor:' || 
+                            ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && !window.location.port);
+        
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        
+        if (isCapacitor || isStandalone) {
+            setIsAppMode(true);
+            setPwaInstalled(true);
+            setShowApkBanner(false);
+        }
+
+        // Check if browser has related apps installed
+        if (navigator.getInstalledRelatedApps) {
+            navigator.getInstalledRelatedApps().then(apps => {
+                if (apps && apps.length > 0) {
+                    setIsAppMode(true);
+                    setPwaInstalled(true);
+                    setShowApkBanner(false);
+                }
+            }).catch(err => console.error("Error checking installed related apps:", err));
+        }
+
         // Fetch featured hostels
         api.get('/hostels')
             .then(res => {
@@ -260,7 +285,7 @@ export default function Home() {
             )}
 
             {/* ===== APK DOWNLOAD BANNER ===== */}
-            {showApkBanner && (
+            {showApkBanner && !isAppMode && (
                 <motion.div
                     initial={{ y: -80, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
@@ -875,7 +900,8 @@ export default function Home() {
             </section>
 
             {/* ===== DOWNLOAD APP SECTION ===== */}
-            <section className="py-24 bg-[#050D1A] text-white overflow-hidden relative">
+            {!isAppMode && (
+                <section className="py-24 bg-[#050D1A] text-white overflow-hidden relative">
                 {/* Multi-layered background glow */}
                 <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary-600/10 rounded-full blur-[120px] pointer-events-none" />
                 <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-blue-600/8 rounded-full blur-[100px] pointer-events-none" />
@@ -1044,6 +1070,7 @@ export default function Home() {
                     </div>
                 </div>
             </section>
+            )}
 
             {/* ===== CTA SECTION ===== */}
             <section className="py-20">
