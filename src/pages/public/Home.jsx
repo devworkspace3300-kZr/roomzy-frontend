@@ -874,87 +874,55 @@ export default function Home() {
                                     ))}
                                 </div>
 
-                                <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3 mt-10 w-full">
-                                    {/* Google Play Store Badge */}
-                                    <a
-                                        href="https://play.google.com/store"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="group flex items-center gap-3.5 h-[56px] bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 rounded-2xl px-5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-primary-500/10 min-w-[180px]"
-                                    >
-                                        {/* Colorful Google Play icon */}
-                                        <svg viewBox="0 0 24 24" className="w-7 h-7 shrink-0" fill="none">
-                                            <path d="M3.6 1.4L14.4 12 3.6 22.6A1.7 1.7 0 013 21.5V2.5c0-.45.22-.86.6-1.1z" fill="#EA4335"/>
-                                            <path d="M18.4 8.1l2.6 1.5c.74.43.74 1.37 0 1.8l-2.6 1.5L14.4 12l4-3.9z" fill="#FBBC04"/>
-                                            <path d="M3.6 1.4L14.4 12l-4 3.9-6.8-3.9L3.6 1.4z" fill="#4285F4"/>
-                                            <path d="M3.6 22.6L14.4 12l4 3.9-10.8 6.7z" fill="#34A853"/>
-                                        </svg>
-                                        <div className="leading-none text-left">
-                                            <span className="block text-[9px] text-gray-400 font-semibold uppercase tracking-wider">Get it on</span>
-                                            <span className="block text-[15px] font-bold text-white mt-0.5">Google Play</span>
-                                        </div>
-                                    </a>
-
-                                    {/* Apple App Store Badge */}
-                                    <a
-                                        href="https://www.apple.com/app-store/"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="group flex items-center gap-3.5 h-[56px] bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 rounded-2xl px-5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-blue-500/10 min-w-[180px]"
-                                    >
-                                        {/* Apple icon */}
-                                        <svg viewBox="0 0 24 24" className="w-7 h-7 text-white shrink-0" fill="currentColor">
-                                            <path d="M18.71,19.5C17.88,20.74,17,21.95,15.66,21.97C14.32,22,13.89,21.18,12.37,21.18C10.84,21.18,10.37,21.95,9.1,22C7.79,22.05,6.8,20.68,5.96,19.47C4.25,17,2.94,12.45,4.7,9.39C5.57,7.87,7.13,6.91,8.82,6.88C10.1,6.86,11.32,7.75,12.11,7.75C12.89,7.75,14.37,6.68,15.92,6.84C16.57,6.87,18.39,7.1,19.56,8.82C19.47,8.88,17.39,10.1,17.41,12.63C17.44,15.65,20.06,16.66,20.1,16.67C20.08,16.74,19.67,18.11,18.71,19.5M15.97,4.17C16.63,3.37,17.07,2.28,16.95,1C16,1.04,14.9,1.6,14.24,2.38C13.68,3.04,13.19,4.14,13.34,5.39C14.39,5.47,15.4,4.88,15.97,4.17Z" />
-                                        </svg>
-                                        <div className="leading-none text-left">
-                                            <span className="block text-[9px] text-gray-400 font-semibold uppercase tracking-wider">Download on the</span>
-                                            <span className="block text-[15px] font-bold text-white mt-0.5">App Store</span>
-                                        </div>
-                                    </a>
-
+                                <div className="flex flex-col sm:flex-row items-stretch justify-center lg:justify-start gap-4 mt-10 w-full max-w-xl lg:max-w-none">
                                     {/* PWA Install Button */}
                                     {!pwaInstalled && (
                                         <button
-                                            onClick={handleInstallPwa}
-                                            className="group flex items-center gap-3.5 h-[56px] bg-primary-600 hover:bg-primary-500 border border-primary-500 hover:border-primary-400 rounded-2xl px-5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary-500/20 min-w-[180px] cursor-pointer"
-                                            title={deferredPrompt ? 'Install Roomzy as an app' : 'Open in browser to install'}
+                                            onClick={() => setShowInstallModal(true)}
+                                            className="group flex items-center gap-4 h-[64px] bg-primary-600 hover:bg-primary-500 border-2 border-primary-400/60 hover:border-primary-300 rounded-2xl px-6 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-primary-500/30 flex-1 min-w-[200px] cursor-pointer"
+                                            title={deferredPrompt ? 'Install Roomzy as an app' : 'Add to home screen'}
                                         >
-                                            {/* Globe/PWA icon */}
-                                            <svg viewBox="0 0 24 24" className="w-7 h-7 text-white shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8">
+                                            <svg viewBox="0 0 24 24" className="w-8 h-8 text-white shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8">
                                                 <circle cx="12" cy="12" r="10" />
                                                 <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" strokeLinecap="round" />
-                                                <path d="M12 16v-4M12 8h.01" strokeLinecap="round" />
                                             </svg>
                                             <div className="leading-none text-left">
-                                                <span className="block text-[9px] text-primary-200 font-semibold uppercase tracking-wider">
-                                                    {deferredPrompt ? 'Install Now' : 'Web App'}
+                                                <span className="block text-[10px] text-primary-200 font-bold uppercase tracking-widest">
+                                                    {deferredPrompt ? 'Install for free' : 'Works on any device'}
                                                 </span>
-                                                <span className="block text-[15px] font-bold text-white mt-0.5">Install PWA</span>
+                                                <span className="block text-[17px] font-black text-white mt-1">Install PWA App</span>
                                             </div>
                                         </button>
                                     )}
                                     {pwaInstalled && (
-                                        <div className="flex items-center gap-2.5 h-[56px] px-5 rounded-2xl bg-green-500/10 border border-green-500/30 text-green-400">
-                                            <svg viewBox="0 0 24 24" className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                        <div className="flex items-center gap-3 h-[64px] px-6 rounded-2xl bg-green-500/10 border-2 border-green-500/30 text-green-400 flex-1 min-w-[200px]">
+                                            <svg viewBox="0 0 24 24" className="w-7 h-7 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
-                                            <span className="text-sm font-bold">App Installed!</span>
+                                            <div className="leading-none">
+                                                <span className="block text-[10px] font-bold uppercase tracking-widest text-green-500">Installed</span>
+                                                <span className="block text-[17px] font-black mt-1">App Ready!</span>
+                                            </div>
                                         </div>
                                     )}
 
                                     {/* Direct APK Download */}
                                     <a
                                         href="/roomzy.apk"
-                                        download
-                                        className="group flex items-center gap-3.5 h-[56px] bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 rounded-2xl px-5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg min-w-[180px]"
+                                        download="roomzy.apk"
+                                        className="group flex items-center gap-4 h-[64px] bg-white/5 hover:bg-white/12 border-2 border-white/12 hover:border-[#3ddc84]/40 rounded-2xl px-6 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-xl flex-1 min-w-[200px]"
                                     >
-                                        <svg viewBox="0 0 24 24" className="w-6 h-6 text-white shrink-0" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12l-4.5 4.5M12 16.5l-4.5-4.5M12 3v13.5M4.5 19.5h15" />
+                                        {/* Android robot icon */}
+                                        <svg viewBox="0 0 24 24" className="w-8 h-8 shrink-0" fill="#3ddc84">
+                                            <path d="M17.523 15.341A5.522 5.522 0 0 0 18 13H6a5.522 5.522 0 0 0 .477 2.341l-1.2 1.2a.75.75 0 1 0 1.06 1.06l1.094-1.094A5.5 5.5 0 0 0 12 17.5a5.5 5.5 0 0 0 4.569-2.993l1.094 1.094a.75.75 0 0 0 1.06-1.06l-1.2-1.2zM9.5 13.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5zm5 0a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5zM7.5 9.5l-1.25-2.165a.75.75 0 1 1 1.3-.75L8.8 8.75A6.47 6.47 0 0 1 12 8a6.47 6.47 0 0 1 3.2.75l1.25-2.165a.75.75 0 1 1 1.3.75L16.5 9.5A6.494 6.494 0 0 1 18.5 13H5.5A6.494 6.494 0 0 1 7.5 9.5z"/>
                                         </svg>
-                                        <div className="leading-none text-left">
-                                            <span className="block text-[9px] text-gray-400 font-semibold uppercase tracking-wider">Android APK</span>
-                                            <span className="block text-[15px] font-bold text-white mt-0.5">Download APK</span>
+                                        <div className="leading-none text-left flex-1">
+                                            <span className="block text-[10px] text-gray-400 font-bold uppercase tracking-widest">Android — Free download</span>
+                                            <span className="block text-[17px] font-black text-white mt-1">Download APK</span>
                                         </div>
+                                        <svg viewBox="0 0 24 24" className="w-5 h-5 text-gray-500 group-hover:text-[#3ddc84] transition-colors shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 16l-4-4m4 4l4-4M12 3v13M4.5 20h15" />
+                                        </svg>
                                     </a>
                                 </div>
 
