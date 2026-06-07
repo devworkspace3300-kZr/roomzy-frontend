@@ -184,44 +184,77 @@ export default function Home() {
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
-                            {/* App icon */}
-                            <div className="w-20 h-20 rounded-[22px] bg-white shadow-xl mx-auto mb-4 flex items-center justify-center">
-                                <span className="text-primary-600 font-black text-3xl">R</span>
+                            {/* Real app logo */}
+                            <div className="w-20 h-20 rounded-[22px] bg-white shadow-xl mx-auto mb-4 overflow-hidden">
+                                <img src="/logo.jpg" alt="Roomzy" className="w-full h-full object-cover" />
                             </div>
                             <h3 className="text-xl font-black">Install Roomzy</h3>
                             <p className="text-primary-200 text-sm mt-1">Add to your home screen for the best experience</p>
                         </div>
-                        {/* Benefits */}
-                        <div className="px-6 py-5 space-y-3">
-                            {[
-                                { icon: '⚡', title: 'Instant Access', desc: 'Launch like a native app — no browser needed' },
-                                { icon: '📶', title: 'Works Offline', desc: 'Browse saved hostels without internet' },
-                                { icon: '🔔', title: 'Smart Alerts', desc: 'Get notified on booking updates instantly' },
-                            ].map(({ icon, title, desc }) => (
-                                <div key={title} className="flex items-start gap-3">
-                                    <span className="text-2xl">{icon}</span>
-                                    <div>
-                                        <p className="font-semibold text-gray-800 text-sm">{title}</p>
-                                        <p className="text-gray-500 text-xs mt-0.5">{desc}</p>
+
+                        {deferredPrompt ? (
+                            /* Native install prompt available */
+                            <>
+                                <div className="px-6 py-5 space-y-3">
+                                    {[
+                                        { icon: '⚡', title: 'Instant Access', desc: 'Launch like a native app — no browser needed' },
+                                        { icon: '📶', title: 'Works Offline', desc: 'Browse saved hostels without internet' },
+                                        { icon: '🔔', title: 'Smart Alerts', desc: 'Get notified on booking updates instantly' },
+                                    ].map(({ icon, title, desc }) => (
+                                        <div key={title} className="flex items-start gap-3">
+                                            <span className="text-2xl">{icon}</span>
+                                            <div>
+                                                <p className="font-semibold text-gray-800 text-sm">{title}</p>
+                                                <p className="text-gray-500 text-xs mt-0.5">{desc}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="px-6 pb-6 space-y-2">
+                                    <button
+                                        onClick={handleInstallPwa}
+                                        className="w-full h-12 rounded-2xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm transition-all active:scale-[0.98] shadow-lg shadow-primary-500/30"
+                                    >
+                                        📲 Install Now
+                                    </button>
+                                    <button onClick={() => setShowInstallModal(false)} className="w-full h-10 rounded-2xl text-gray-400 hover:text-gray-600 font-medium text-sm transition-colors">
+                                        Maybe later
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            /* Manual install instructions for Chrome */
+                            <>
+                                <div className="px-6 py-5">
+                                    <p className="text-sm font-semibold text-gray-700 mb-4">Install Roomzy in 2 steps:</p>
+                                    <div className="space-y-3">
+                                        <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+                                            <span className="w-6 h-6 rounded-full bg-primary-600 text-white text-xs font-black flex items-center justify-center shrink-0 mt-0.5">1</span>
+                                            <div>
+                                                <p className="text-sm font-semibold text-gray-800">Tap the menu icon</p>
+                                                <p className="text-xs text-gray-500 mt-0.5">Click the <strong>⋮ three dots</strong> in the top-right corner of Chrome</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+                                            <span className="w-6 h-6 rounded-full bg-primary-600 text-white text-xs font-black flex items-center justify-center shrink-0 mt-0.5">2</span>
+                                            <div>
+                                                <p className="text-sm font-semibold text-gray-800">Select "Add to Home screen"</p>
+                                                <p className="text-xs text-gray-500 mt-0.5">Then tap <strong>Add</strong> — Roomzy will appear on your home screen!</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="mt-4 p-3 bg-blue-50 rounded-xl flex items-center gap-2">
+                                        <span className="text-lg">💡</span>
+                                        <p className="text-xs text-blue-700">Or look for the <strong>install icon (⊕)</strong> in Chrome's address bar</p>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                        {/* Actions */}
-                        <div className="px-6 pb-6 space-y-2">
-                            <button
-                                onClick={handleInstallPwa}
-                                className="w-full h-12 rounded-2xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm transition-all active:scale-[0.98] shadow-lg shadow-primary-500/30"
-                            >
-                                {deferredPrompt ? '📲 Install Now' : 'Open in Chrome to Install'}
-                            </button>
-                            <button
-                                onClick={() => setShowInstallModal(false)}
-                                className="w-full h-10 rounded-2xl text-gray-400 hover:text-gray-600 font-medium text-sm transition-colors"
-                            >
-                                Maybe later
-                            </button>
-                        </div>
+                                <div className="px-6 pb-6">
+                                    <button onClick={() => setShowInstallModal(false)} className="w-full h-11 rounded-2xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm transition-all active:scale-[0.98]">
+                                        Got it!
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </motion.div>
                 </div>
             )}
