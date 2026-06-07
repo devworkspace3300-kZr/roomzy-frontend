@@ -1,0 +1,234 @@
+the token egenretion reached and response is ended now u need to chek all the tinnkgs done in previous response 
+the taks of the previous chat is 
+Roomzy Exhibition Tasks Checklist
+ Phase 1: Backend Image Upload Interceptors
+ Modify hostels.controller.ts Cloudinary storage configuration and regex for case-insensitive .jfif support
+
+
+
+
+ Modify users.controller.ts Cloudinary storage configuration and regex for case-insensitive .jfif support
+ Phase 2: Owner Verification Document Submission Response
+ Modify owners.controller.ts verification-documents response to return { success: true }
+ Phase 3: Booking Cancellation Lifecycle
+ Update frontend MyBookings.jsx to display the cancel request button for all non-final states
+ Phase 4: Admin Dashboard Verifications & Filter Tabs
+ Update admin.service.ts and admin.controller.ts owner verifications list to support optional status filters
+ Modify admin verifications review methods (verifyOwner, rejectOwner, scheduleInspection) to locate requests by userId directly
+ Update admin AdminDashboard.jsx to fetch unified hostel lists and implement horizontal filter categories
+ Update admin AdminDashboard.jsx owner verifications view to render status category filter tabs
+ Phase 5: Dynamic System Commission Settings
+ Implement self-healing system_settings dynamic table inside BookingsService.onModuleInit()
+ Expose admin endpoints to get/patch commission settings in admin.controller.ts and admin.service.ts
+ Update manual payment confirmation logic inside BookingsService.confirmBooking to split payments and log PAID entries in the ledger
+ Update online payment initiation inside PaymentsService.initiatePayment to consume the dynamic commission settings rate
+ Add the System Settings commission rate edit form inside the admin settings tab in AdminDashboard.jsx
+ Phase 6: Owner Earnings View
+ Add @Get('owner/earnings') endpoint in payments.controller.ts and PaymentsService
+ Implement gorgeous Earnings dashboard panel in OwnerDashboard.jsx showing net payouts, commissions, and transaction lists
+this is my prevoius changes made which is o think not complete 
+now i ma testing final testing frm akl three roels amdin studetn and owner i will share u every thing done and chnages needed
+student
+the student successfuly signup and login 
+student find perfect hostle for thir self with proper finding method like filtering also works prperly 
+and then ia have login and finding listings and then find the perfect matching hostel and send booking request after booking request the booking is displayed in studetn dashboard and in the my bookings tab as well and cancel request need t  be work properly and the cancelled requests are saved and displayed in dasboard to student owner and admin use best strategy as u can 
+owner 
+signup successfull and login properly working 
+verify hostel functionlaity is working the owner is verfiying their hostle to send documents and the request is added at admin side 
+after owner verrification request comes in admin dashboard in owner verification dashbaord
+and after physical visit adn seen the document sended by pwner are viewed and admin approve the owner request the owner verification is done the alert of verification is removed from the owner dashboard because the owner is verified
+and then the List Property 
+in https://roomzy-frontend.vercel.app/dashboard/owner/list-hostel list hostel i have uploaded all details  and images as well for listing hostel the submit button didnot work roperly while submitting the hostel listing getting as shared in screen the image i a getting 400 status code and in hostel in image  uploading i am gettig image 400 eroror because i am uploading jfif image so make validation as ppossibe so the owner add proper images  whihc  dnot comes error and the listing is not submiting it needs to be list properly and hostel listing request need to be comes in amdin dahsboard in hostel listings in Hostel Verifications tab and same as like work done in owner request the filters in which the all and pending requests and approved requests are shown and cancelled request as well so the record is created properly in clean way 
+and after verification the hostle is listed on hostels in frontend home and listings and then owner will add rooms in hostel make sure the rooms vailable and beds displaying correctly as
+ Gender
+
+boys only
+
+Base Price
+
+PKR 15,000
+
+Total Rooms
+
+1
+
+Available
+
+0 Rooms
+and in room image uploading i am gettig image 400 eroror because i am uploading jfif image so make validation as ppossibe so the owner add proper images  whihc  dnot comes error  and thenthe rooms in hostel are availale on frontend ome and listing properly so stuent ook the rrom 
+booking requests need to be properly viewed in owner dashbaord as well approve bookign request need to be qork properly as it working and Deadline
+
+23h 59m
+
+Confirm Payment need to be work properly 
+the payment functionlaity work like when the owner approved the bookinn the booking goes in approved but the payemnt is not done so the student need t be done payment to confirm and book room and bed so in payment when student done payment through the onlie then the bookig status coems automatically after payment to confirm and the deduction is made 
+this is the response i am gettign from chatgpt
+i am on this payment stage is the payfast d thsi functionality that the payment is sduducted and the commisssion is transfer to another accoutn 
+so in payment when student done payment through the onlie then the bookig status coems automatically after payment to confirm and the deduction is made 
+i need to imolement this thisnif its possibele then i will add commision rate in amdin dashbaord to manually chaneg aand fix the deducting the percentage from the payments
+
+Yes — what you’re trying to build is 100% possible, but there’s an important detail:
+
+👉 It depends on what PayFast actually supports in your integration type.
+
+Let me break it down clearly so you don’t design something impossible.
+
+💳 What you want (your system flow)
+
+You want this flow:
+
+Student pays online (booking payment)
+System automatically:
+confirms booking ✅
+deducts commission %
+sends remaining amount to school/vendor
+⚠️ Critical truth about PayFast
+
+Most payment gateways (including PayFast-style systems) usually work like this:
+
+❌ Default mode (most common)
+Money goes to your merchant account first
+You receive full payment
+Then YOU manually/externally distribute commission
+
+👉 So automatic split is NOT always built-in.
+
+✅ Advanced mode (only if supported)
+
+Some gateways support:
+
+Marketplace payments
+Split payments
+Sub-merchant payouts
+
+If PayFast supports split/marketplace payouts, then yes:
+✔ commission can be auto deducted
+✔ remainder sent to another account
+
+BUT only if you are approved for that feature.
+
+🧠 What YOU should implement (recommended architecture)
+
+Even if PayFast does NOT support splitting, you can still build your system perfectly.
+
+🔵 Step 1 — Payment success webhook (VERY IMPORTANT)
+
+When payment is successful:
+
+PayFast sends you a callback (IPN/webhook):
+
+/payment-success
+
+You handle:
+
+verify transaction
+mark booking = PAID
+confirm booking automatically
+🔵 Step 2 — Booking status automation
+if (payment.status === "SUCCESS") {
+   booking.status = "CONFIRMED";
+}
+
+✔ This part is always possible
+
+🔵 Step 3 — Commission calculation (your system)
+
+You add admin-controlled commission:
+
+commission = totalAmount * (commissionRate / 100)
+vendorAmount = totalAmount - commission
+
+Example:
+
+Payment = 10,000
+Commission = 10%
+Admin earns = 1,000
+School/vendor gets = 9,000
+🔵 Step 4 — Store ledger (VERY IMPORTANT)
+
+You must store:
+
+transaction table
+commission table
+payout status
+
+Example:
+
+{
+  "paymentId": "123",
+  "total": 10000,
+  "commission": 1000,
+  "vendorAmount": 9000,
+  "status": "PAID"
+}
+🔵 Step 5 — Payout to other account
+
+Now here are your options:
+
+Option A (Most common)
+
+👉 Manual payout system
+
+admin sees vendor balance
+clicks “Pay out”
+bank transfer or external system
+
+✔ safest
+✔ works with all gateways
+
+Option B (Automated payout — if supported by PayFast)
+API transfer to vendor account
+requires marketplace approval
+🧩 Booking automation you want
+
+Yes, this is correct:
+
+After payment:
+
+✔ booking auto confirmed
+✔ status updated
+✔ commission calculated
+✔ ledger saved
+
+⚙️ Admin dashboard feature (your idea is GOOD)
+
+You should add:
+
+Commission settings:
+Default commission (%)
+Per school override (optional)
+Fixed fee option
+
+Example:
+
+Commission Mode:
+( ) Percentage
+( ) Fixed Amount
+( ) Hybrid
+🚨 Important warning (don’t skip this)
+
+Do NOT trust frontend payment success.
+
+Always use:
+
+✔ webhook/IPN verification
+✔ server-side validation
+✔ transaction ID check
+
+Otherwise users can fake “paid” status.
+
+🎯 Final answer (simple truth)
+
+✔ Yes, your system is possible
+✔ Booking auto-confirm after payment is correct
+✔ Commission deduction is possible
+⚠️ But split payout depends on PayFast features
+👉 Most likely you will implement commission logic in YOUR backend, not PayFast
+use best strategy to do this the payemnt gatway will be addeed comeing soon 
+and confirmed payment manually wiill manually confirmed booking and the records are creatded in owner the confirmed bookings display the details of confirmation and the deduction on the ased on deduction percentage so add by defaut 10% but the Commission settings need to be work on admin side so the amdin will add commision settings so the commission is  calculated and the amount is added in analytic dashboard both the physical confrimation and online confirmatio records with deduction is added in analytics in the owner earnign tab and in the admin adashboard plateform finance tab  and you know that the plateform is responsible for only first booking and payment onlyafter booking the rest of the moth is not the responsibolity of plateform only if the owner marked it completed the room will available in hostel listing and student will login and review the hostel booking thats it
+admin 
+login and signup is working properly 
+owner verrification request comes in admin dashboard in owner verification dashbaord
+and after physical visit adn seen the document sended by pwner are viewed and admin approve the owner request 
+after this the owner verification is done the alert of verification is removed from the owner dashboard because the owner is verified u need to do is that the Owner Verification Requests also comes in owner verification tab on side bar and at admin side in owner verifications you need to add statuses pending approved and rejected owners verifcation in that lace becaus ethisis best strategy the records are also available the images or documents like pdfs displayed in owner records and in the approved owner theis is approval owners and their document details as you can use best strategy so the records are save dand displayed in amdin dashboard
+so thes eare the things i have tested and the chenges need to be done and througly check and implementaion needed tomorror is exibition and the applicagion need to be work properkk from signup to review module 

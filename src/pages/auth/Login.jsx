@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { loginUser } from '../../api/authApi';
+import { loginUser, normalizeAuthResponse } from '../../api/authApi';
 import { motion } from 'framer-motion';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiUsers, FiHome, FiShield } from 'react-icons/fi';
 import Button from '../../components/ui/Button';
@@ -31,19 +31,28 @@ export default function Login() {
 
         try {
             const result = await loginUser(form.email, form.password);
-            
-            if (result.success) {
-                login(result.data.token, result.data.user);
+            const authData = normalizeAuthResponse(result);
+
+            if (authData) {
+                login(authData.token, authData.user);
                 toast.success('Login successful!');
 
-                const role = result.data.user.role;
-                if (role === 'student') navigate('/dashboard/student');
-                else if (role === 'owner') navigate('/dashboard/owner');
-                else if (role === 'admin') navigate('/dashboard/admin');
-                else navigate('/');
+                const role = authData.user.role;
+                if (role === 'student') navigate('/dashboard/student', { replace: true });
+                else if (role === 'owner') navigate('/dashboard/owner', { replace: true });
+                else if (role === 'admin') navigate('/dashboard/admin', { replace: true });
+                else navigate('/', { replace: true });
+            } else {
+                const msg = 'Login failed. Unexpected server response.';
+                setError(msg);
+                toast.error(msg);
             }
         } catch (err) {
-            const msg = err.response?.data?.message || 'Login failed. Please try again.';
+            const msg = err.response?.data?.message
+                || (err.request && !err.response
+                    ? 'Cannot reach the server. Make sure the backend is running at http://localhost:3000'
+                    : null)
+                || 'Login failed. Please try again.';
             setError(msg);
             toast.error(msg);
         } finally {

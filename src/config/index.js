@@ -2,7 +2,7 @@ export const APP_CONFIG = {
     name: 'Roomzy',
     tagline: 'Find Your Room. Own Your Journey.',
     description: "Pakistan's trusted platform connecting students with safe, affordable, and verified accommodation across KPK and beyond.",
-    apiBaseUrl: import.meta.env.VITE_API_BASE_URL,
+    apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1',
     version: '1.0.0',
     supportEmail: 'support@roomzy.pk',
     supportPhone: '+92-332-8912706',

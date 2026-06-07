@@ -70,7 +70,7 @@ export function AuthProvider({ children }) {
   };
 
   // ── Computed helpers ──────────────────────────────────────────
-  const isAuthenticated = !!token;
+  const isAuthenticated = !!token || !!localStorage.getItem('roomzy_token');
   const isStudent       = user?.role === 'student';
   const isOwner         = user?.role === 'owner';
   const isAdmin         = user?.role === 'admin';

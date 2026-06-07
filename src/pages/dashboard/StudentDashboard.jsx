@@ -11,7 +11,7 @@ import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import HostelCard from '../../components/ui/HostelCard';
 
-// ─── Unified Professional Stat Card Component ───────────────────────────
+// â”€â”€â”€ Unified Professional Stat Card Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function StatCard({ label, value, badge, badgeColor, borderClass, prefix }) {
     return (
         <div className={`bg-white rounded-r-2xl rounded-l-sm p-6 shadow-sm border border-gray-100 border-l-[5px] ${borderClass} flex flex-col justify-between h-32 hover:shadow-md transition-all duration-300`}>
@@ -155,13 +155,13 @@ export default function StudentDashboard() {
     const activeStay = safeBookings.find(b => ['active_stay', 'approved', 'confirmed'].includes(b?.status));
 
     const formatDate = (dateStr, options) => {
-        if (!dateStr) return '—';
+        if (!dateStr) return 'â€”';
         const date = new Date(dateStr);
-        if (isNaN(date.getTime())) return '—';
+        if (isNaN(date.getTime())) return 'â€”';
         try {
             return date.toLocaleDateString('en-GB', options);
         } catch (e) {
-            return '—';
+            return 'â€”';
         }
     };
 
@@ -180,35 +180,35 @@ export default function StudentDashboard() {
                         <p className="text-gray-500 mt-1 font-medium">Your next rent payment is due in 5 days.</p>
                     </div>
 
-                    {/* Unified Stats Grid */}
+                    {/* Unified Stats Grid â€” 4 Cards matching Owner/Admin layout */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
                         <StatCard
                             label="Total Bookings"
                             value={loadingBookings ? '...' : safeBookings.length}
-                            badge={pendingBookings > 0 ? `${pendingBookings} Pending` : 'All Done'}
-                            badgeColor="text-primary-600 bg-primary-50"
+                            badge="All Time"
+                            badgeColor="text-blue-600 bg-blue-50"
                             borderClass="border-[#0B1A30]"
                         />
                         <StatCard
-                            label="Active Stay"
-                            value={activeStay ? '01' : '00'}
-                            badge={activeStay ? 'LIVE' : 'None'}
-                            badgeColor={activeStay ? 'text-emerald-600 bg-emerald-50' : 'text-gray-400 bg-gray-50'}
-                            borderClass={activeStay ? 'border-emerald-500' : 'border-gray-200'}
-                        />
-                        <StatCard
-                            label="Approved"
-                            value={loadingBookings ? '...' : safeBookings.filter(b => ['approved','confirmed','active_stay','completed'].includes(b?.status)).length}
-                            badge="✓ Approved"
+                            label="Pending Requests"
+                            value={loadingBookings ? '...' : pendingBookings}
+                            badge={pendingBookings > 0 ? 'â³ Awaiting' : 'None'}
                             badgeColor="text-amber-600 bg-amber-50"
                             borderClass="border-amber-400"
                         />
                         <StatCard
+                            label="Approved / Active"
+                            value={loadingBookings ? '...' : safeBookings.filter(b => ['approved','confirmed','active_stay','completed'].includes(b?.status)).length}
+                            badge="âœ“ Approved"
+                            badgeColor="text-emerald-600 bg-emerald-50"
+                            borderClass="border-emerald-400"
+                        />
+                        <StatCard
                             label="Saved Hostels"
                             value={loadingFavorites ? '...' : favorites.length}
-                            badge="🔖 Saved"
+                            badge="ðŸ”– Saved"
                             badgeColor="text-purple-600 bg-purple-50"
-                            borderClass="border-[#0B1A30]"
+                            borderClass="border-purple-400"
                         />
                     </div>
 
@@ -216,70 +216,7 @@ export default function StudentDashboard() {
                         {/* Main Column */}
                         <div className="flex-1 space-y-6 lg:space-y-8 min-w-0">
                             
-                            {/* Redesigned Compact Current Residence Card */}
-                            {activeStay ? (
-                                <div className="bg-[#0B1A30] rounded-[2rem] p-6 sm:p-8 relative overflow-hidden shadow-2xl group border border-white/5">
-                                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-[80px] -mr-20 -mt-20 group-hover:scale-125 transition-transform duration-700" />
-                                    
-                                    <div className="flex flex-col md:flex-row gap-6 items-center relative z-10">
-                                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden shadow-2xl border border-white/10 shrink-0">
-                                            <img src={activeStay?.hostel?.images?.[0]?.imageUrl || activeStay?.hostel?.images?.[0]?.url || activeStay?.hostel?.images?.[0] || 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?q=80&w=300'} alt="Hostel" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
-                                        </div>
-                                        <div className="flex-1 text-center md:text-left">
-                                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-2">
-                                                <span className="px-3 py-1 bg-white/10 border border-white/10 rounded-full text-[9px] font-black text-white uppercase tracking-widest">
-                                                    {activeStay?.status === 'active_stay' ? 'Active Tenancy' : 
-                                                     activeStay?.status === 'approved' ? 'Reserved (Awaiting Payment)' : 
-                                                     activeStay?.status === 'confirmed' ? 'Booking Confirmed' : activeStay?.status}
-                                                </span>
-                                                <span className="text-emerald-400 text-[10px] font-black uppercase tracking-widest">Verified ✓</span>
-                                            </div>
-                                            <h3 className="text-2xl sm:text-3xl font-black text-white mb-2 tracking-tighter">{activeStay?.hostel?.name || 'My Hostel'}</h3>
-                                            <p className="text-gray-400 text-sm font-medium flex items-center justify-center md:justify-start gap-2 mb-4">
-                                                <FiMapPin className="text-primary-500" size={14}/> {activeStay?.hostel?.area || 'Area'}, {activeStay?.hostel?.city || 'City'} • Room {activeStay?.room?.roomNumber || '—'}
-                                            </p>
-                                            
-                                            <div className="flex flex-wrap gap-3">
-                                                {activeStay.status === 'approved' ? (
-                                                    <Link 
-                                                        to="/dashboard/student" 
-                                                        state={{ activeTab: 'messages' }}
-                                                        className="px-6 py-2.5 bg-emerald-500 text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-lg transition-all hover:bg-emerald-600 hover:-translate-y-1 active:scale-95"
-                                                    >
-                                                        Pay Owner Physically
-                                                    </Link>
-                                                ) : (
-                                                    <button 
-                                                        disabled
-                                                        className="px-6 py-2.5 bg-white/10 text-white/50 font-black text-[10px] uppercase tracking-widest rounded-xl border border-white/10 cursor-not-allowed"
-                                                    >
-                                                        {activeStay.status === 'confirmed' ? 'Payment Confirmed' : 'Active Tenancy'}
-                                                    </button>
-                                                )}
-                                                <button className="px-6 py-2.5 text-white font-black text-[10px] uppercase tracking-widest rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 transition-all flex items-center gap-2 active:scale-95 group/btn">
-                                                    <FiMessageCircle className="group-hover/btn:rotate-12 transition-transform" size={16} /> Support
-                                                </button>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="hidden lg:flex flex-col items-end gap-2 text-right">
-                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Since</p>
-                                            <div className="text-2xl font-black text-white">
-                                                {formatDate(activeStay?.moveInDate, { month: 'short', year: 'numeric' })}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="bg-white rounded-[2rem] p-8 border-2 border-dashed border-gray-100 flex flex-col items-center justify-center text-center">
-                                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                                        <FiHome className="text-gray-200" size={32} />
-                                    </div>
-                                    <h3 className="text-lg font-black text-[#0B1A30] uppercase tracking-tighter">No Active Stay</h3>
-                                    <p className="text-gray-400 text-xs font-medium max-w-xs mt-1">Once your booking is approved and you move in, your tenancy details will appear here.</p>
-                                    <Link to="/listings" className="mt-4 text-[10px] font-black text-primary-600 uppercase tracking-widest hover:underline">Find a Hostel →</Link>
-                                </div>
-                            )}
+
 
                             {/* Booking History Table - Real Data */}
                             <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
@@ -296,7 +233,7 @@ export default function StudentDashboard() {
                                         <div className="p-10 text-center">
                                             <FiCalendar size={30} className="mx-auto mb-3 text-gray-200" />
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No bookings yet</p>
-                                            <Link to="/listings" className="inline-block mt-3 text-xs text-primary-600 font-bold">Browse Hostels →</Link>
+                                            <Link to="/listings" className="inline-block mt-3 text-xs text-primary-600 font-bold">Browse Hostels â†’</Link>
                                         </div>
                                     ) : (
                                         <>
@@ -396,220 +333,12 @@ export default function StudentDashboard() {
                             </div>
                         </div>
 
-                        {/* Right Sidebar */}
-                        <div className="w-full xl:w-80 shrink-0 space-y-6 lg:space-y-8">
-                            
-                            {/* Notifications Panel */}
-                            <div className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-sm border border-gray-100">
-                                <h3 className="text-md font-black text-[#0B1A30] uppercase tracking-tighter mb-8">Notifications</h3>
-                                <div className="space-y-6">
-                                    {[
-                                        { icon: FiFileText, color: 'text-blue-500 bg-blue-50', title: 'Invoice Ready', desc: 'March rent invoice generated.', time: '2h ago', unread: true },
-                                        { icon: FiTool, color: 'text-amber-500 bg-amber-50', title: 'Maintenance', desc: 'AC servicing scheduled.', time: '5h ago', unread: true },
-                                    ].map((n, i) => (
-                                        <div key={i} className={`flex gap-4 p-4 rounded-2xl transition-all border ${n.unread ? 'bg-gray-50 border-gray-100 shadow-sm' : 'border-transparent hover:bg-gray-50'}`}>
-                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${n.color}`}><n.icon size={18} /></div>
-                                            <div className="min-w-0">
-                                                <p className="font-black text-[13px] text-[#0B1A30] truncate tracking-tight">{n.title}</p>
-                                                <p className="text-[11px] text-gray-400 font-medium truncate">{n.desc}</p>
-                                                <p className="text-[9px] font-black text-gray-400 mt-2 uppercase tracking-widest">{n.time}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                                <button className="w-full mt-8 py-3 rounded-xl border border-gray-100 text-[#0B1A30] text-[10px] font-black hover:bg-gray-50 transition-all uppercase tracking-[0.2em]">View History</button>
-                            </div>
 
-                            {/* Rewards Section */}
-                            <div className="bg-[#F8F9FA] rounded-[2rem] p-8 border border-gray-100 relative overflow-hidden group">
-                                <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-primary-500/5 rounded-full blur-2xl group-hover:bg-primary-500/10 transition-all duration-1000"></div>
-                                <h3 className="text-sm font-black text-[#0B1A30] mb-2 uppercase tracking-tighter">Tenant Perks</h3>
-                                <p className="text-[11px] text-gray-500 leading-relaxed mb-6 font-medium">Get <span className="text-[#0B1A30] font-black">15% discount</span> at partner cafes in Lahore.</p>
-                                <button className="text-[9px] font-black text-[#0B1A30] flex items-center gap-2 uppercase tracking-[0.2em] border-b border-[#0B1A30]/10 pb-1">Claim Now →</button>
-                            </div>
-                        </div>
                     </div>
                 </div>
             )}
             
             {activeTab === 'bookings' && <MyBookings noLayout={true} />}
-
-            {activeTab === 'active_stay' && (
-                <div className="animate-fade-in space-y-8 pb-8">
-                    <div>
-                        <h2 className="text-3xl font-[900] text-[#0B1A30] tracking-tight">Active Tenancy</h2>
-                        <p className="text-gray-500 mt-1 font-medium">Full details of your current residence and booking status at Roomzy</p>
-                    </div>
-
-                    {activeStay ? (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            <div className="lg:col-span-2 space-y-8">
-                                {/* Tenancy Main Card */}
-                                <div className="bg-white rounded-[2.5rem] p-1 shadow-sm border border-gray-100 overflow-hidden relative group">
-                                    <div className="aspect-[21/9] w-full overflow-hidden">
-                                        <img 
-                                            src={activeStay.hostel?.images?.[0]?.imageUrl || activeStay.hostel?.images?.[0]?.url || activeStay.hostel?.images?.[0] || 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?q=80&w=1200'} 
-                                            alt="Hostel" 
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" 
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-[#0B1A30] via-[#0B1A30]/35 to-transparent" />
-                                    </div>
-                                    <div className="p-8 relative -mt-32">
-                                        <div className="flex flex-wrap items-center gap-3 mb-4">
-                                            <span className={`px-3 py-1 backdrop-blur-md rounded-full text-[9px] font-black uppercase tracking-widest border text-white ${
-                                                activeStay.status === 'active_stay' 
-                                                    ? 'bg-emerald-500/30 border-emerald-400/40' 
-                                                    : activeStay.status === 'confirmed' 
-                                                        ? 'bg-blue-500/30 border-blue-400/40'
-                                                        : 'bg-amber-500/30 border-amber-400/40'
-                                            }`}>
-                                                {activeStay.status === 'active_stay' 
-                                                    ? 'Currently Staying' 
-                                                    : activeStay.status === 'confirmed' 
-                                                        ? 'Awaiting Move-in' 
-                                                        : 'Booking Approved'}
-                                            </span>
-                                            <span className="px-3 py-1 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/20 rounded-full text-[9px] font-black text-emerald-400 uppercase tracking-widest">Verified Property ✓</span>
-                                        </div>
-                                        <h3 className="text-4xl font-black text-white mb-2 tracking-tighter">{activeStay.hostel?.name}</h3>
-                                        <p className="text-gray-300 font-medium flex items-center gap-2 mb-8">
-                                            <FiMapPin className="text-primary-400" size={16}/> {activeStay.hostel?.fullAddress || `${activeStay.hostel?.area}, ${activeStay.hostel?.city}`}
-                                        </p>
-
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10">
-                                                <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest mb-1">Room Details</p>
-                                                <p className="text-lg font-black text-white">Room {activeStay.room?.roomNumber || '—'}</p>
-                                                <p className="text-[10px] text-gray-300 font-bold uppercase">{activeStay.room?.roomType} Selection</p>
-                                            </div>
-                                            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10">
-                                                <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest mb-1">Move-in Date</p>
-                                                <p className="text-lg font-black text-white">{formatDate(activeStay.moveInDate, { day: 'numeric', month: 'short', year: 'numeric' })}</p>
-                                                <p className="text-[10px] text-gray-300 font-bold uppercase">Requested Check-in</p>
-                                            </div>
-                                            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 col-span-2 sm:col-span-1">
-                                                <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest mb-1">Monthly Rent</p>
-                                                <p className="text-lg font-black text-white">PKR {activeStay.monthlyPrice?.toLocaleString()}</p>
-                                                <p className="text-[10px] text-gray-300 font-bold uppercase">Incl. Maintenance</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Tenancy Timeline Block */}
-                                <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 space-y-6">
-                                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Tenancy Status Timeline</h4>
-                                    <div className="relative border-l border-gray-100 pl-6 ml-3 space-y-6">
-                                        <div className="relative">
-                                            <div className="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-white ring-4 ring-emerald-100">✓</div>
-                                            <p className="text-[10px] font-black text-[#0B1A30] uppercase tracking-widest">Booking Created & Submitted</p>
-                                            <p className="text-xs text-gray-400 mt-1">Your request was submitted and assigned reference ID: <span className="font-bold text-[#0B1A30]">{activeStay.id}</span></p>
-                                        </div>
-                                        <div className="relative">
-                                            <div className="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-white ring-4 ring-emerald-100">✓</div>
-                                            <p className="text-[10px] font-black text-[#0B1A30] uppercase tracking-widest">Approved by Property Owner</p>
-                                            <p className="text-xs text-gray-400 mt-1">The hostel owner approved your tenancy request and allocated bed slots.</p>
-                                        </div>
-                                        <div className="relative">
-                                            <div className={`absolute -left-[31px] top-0 w-4 h-4 rounded-full flex items-center justify-center text-white ring-4 ${
-                                                ['confirmed', 'active_stay'].includes(activeStay.status) 
-                                                    ? 'bg-emerald-500 ring-emerald-100' 
-                                                    : 'bg-amber-500 ring-amber-100 animate-pulse'
-                                            }`}>
-                                                {['confirmed', 'active_stay'].includes(activeStay.status) ? '✓' : '⌛'}
-                                            </div>
-                                            <p className="text-[10px] font-black text-[#0B1A30] uppercase tracking-widest">Rent Payment Verified</p>
-                                            <p className="text-xs text-gray-400 mt-1">
-                                                {['confirmed', 'active_stay'].includes(activeStay.status) 
-                                                    ? 'Payment verified successfully by owner.' 
-                                                    : 'Awaiting your physical rent payment to owner.'}
-                                            </p>
-                                        </div>
-                                        <div className="relative">
-                                            <div className={`absolute -left-[31px] top-0 w-4 h-4 rounded-full flex items-center justify-center text-white ring-4 ${
-                                                activeStay.status === 'active_stay' 
-                                                    ? 'bg-emerald-500 ring-emerald-100' 
-                                                    : 'bg-gray-200 ring-gray-100'
-                                            }`}>
-                                                {activeStay.status === 'active_stay' ? '✓' : '⌛'}
-                                            </div>
-                                            <p className="text-[10px] font-black text-[#0B1A30] uppercase tracking-widest">Move-in Confirmation</p>
-                                            <p className="text-xs text-gray-400 mt-1">
-                                                {activeStay.status === 'active_stay' 
-                                                    ? 'Residency active! Welcome to your new room.' 
-                                                    : 'Awaiting your arrival at the hostel. The owner will confirm your check-in.'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-6">
-                                {/* Tenancy & Contract details */}
-                                <div className="bg-[#0B1A30] rounded-[2rem] p-8 shadow-xl text-white">
-                                    <h4 className="text-[10px] font-black text-[#8BA3C7] uppercase tracking-[0.2em] mb-6">Contract & Tenure</h4>
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between items-center py-3 border-b border-white/10">
-                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Start Date</span>
-                                            <span className="text-xs font-black">{formatDate(activeStay.moveInDate, { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center py-3 border-b border-white/10">
-                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Expected End</span>
-                                            <span className="text-xs font-black">{formatDate(activeStay.expectedEndDate, { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center py-3 border-b border-white/10">
-                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Contract Length</span>
-                                            <span className="text-xs font-black bg-white/10 px-3 py-1 rounded-full text-primary-300">{activeStay.durationMonths || '—'} Months</span>
-                                        </div>
-                                        <div className="flex justify-between items-center py-3">
-                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Reference Code</span>
-                                            <span className="text-[10px] font-mono bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg text-emerald-400 font-bold uppercase">{activeStay.id?.substring(0, 8)}...</span>
-                                        </div>
-                                    </div>
-
-                                    {activeStay.status === 'confirmed' && (
-                                        <div className="mt-8 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl">
-                                            <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1">Warden Instruction</p>
-                                            <p className="text-[11px] text-gray-300 leading-relaxed font-medium">Your payment is verified! Show your Booking reference code to the warden upon arrival to complete your check-in.</p>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Features & Warden Contact */}
-                                <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100">
-                                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6">Hostel Features</h4>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        {['High-Speed Wi-Fi', '24/7 Security', 'Meal Service', 'Power Backup'].map((feat, i) => (
-                                            <div key={i} className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 border border-gray-100">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-primary-500" />
-                                                <span className="text-[10px] font-bold text-[#0B1A30] uppercase tracking-widest">{feat}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    {['confirmed', 'active_stay'].includes(activeStay.status) ? (
-                                        <Button className="w-full mt-8 bg-[#0B1A30] hover:bg-gray-800 py-4 shadow-xl shadow-[#0B1A30]/10">
-                                            Contact Warden
-                                        </Button>
-                                    ) : (
-                                        <Button disabled className="w-full mt-8 bg-gray-200 text-gray-500 py-4 cursor-not-allowed border-none">
-                                            Payment Required to Contact Warden
-                                        </Button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="bg-white rounded-[3rem] p-20 text-center border-2 border-dashed border-gray-200">
-                            <div className="w-20 h-20 bg-gray-50 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
-                                <FiHome size={32} className="text-gray-200" />
-                            </div>
-                            <h3 className="text-xl font-black text-[#0B1A30] uppercase tracking-tighter mb-2">No Active Residency</h3>
-                            <p className="text-gray-400 font-medium max-w-sm mx-auto">Once your booking is approved and you move in, your tenancy details will appear here.</p>
-                            <Link to="/listings" className="inline-block mt-8 text-primary-600 font-black text-xs uppercase tracking-widest border-b-2 border-primary-600 pb-1">Browse Hostels →</Link>
-                        </div>
-                    )}
-                </div>
-            )}
 
             {activeTab === 'saved' && (
                 <div className="animate-fade-in space-y-8 pb-8">
@@ -630,7 +359,7 @@ export default function StudentDashboard() {
                             </div>
                             <h3 className="text-xl font-black text-[#0B1A30] uppercase tracking-tighter mb-2">Wishlist is Empty</h3>
                             <p className="text-gray-400 font-medium max-w-sm mx-auto">Save hostels you like to compare them later or book them when you're ready.</p>
-                            <Link to="/listings" className="inline-block mt-8 text-primary-600 font-black text-xs uppercase tracking-widest border-b-2 border-primary-600 pb-1">Start Browsing →</Link>
+                            <Link to="/listings" className="inline-block mt-8 text-primary-600 font-black text-xs uppercase tracking-widest border-b-2 border-primary-600 pb-1">Start Browsing â†’</Link>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -739,12 +468,161 @@ export default function StudentDashboard() {
                 </div>
             )}
 
-            {activeTab === 'browse' && (
+            {activeTab === 'active_stay' && (
+                <div className="space-y-6 animate-fade-in pb-8">
+                    {/* Page Header */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h2 className="text-3xl font-[900] text-[#0B1A30] tracking-tight">Active Stay</h2>
+                            <p className="text-gray-500 mt-1 font-medium">Your current confirmed accommodation</p>
+                        </div>
+                        {activeStay && (
+                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-black uppercase tracking-widest rounded-full">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                {activeStay.status === 'active_stay' ? 'Currently Living Here' : activeStay.status === 'confirmed' ? 'Confirmed Booking' : 'Approved'}
+                            </span>
+                        )}
+                    </div>
+
+                    {loadingBookings ? (
+                        <div className="flex flex-col items-center justify-center py-24 gap-4">
+                            <div className="animate-spin w-10 h-10 border-4 border-[#0B1A30] border-t-transparent rounded-full" />
+                            <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Loading stay details...</p>
+                        </div>
+                    ) : activeStay ? (
+                        <div className="space-y-5">
+                            {/* Hero Card */}
+                            <div className="relative rounded-[2rem] overflow-hidden shadow-xl border border-gray-100 group">
+                                <div className="relative h-56 sm:h-72 w-full">
+                                    <img
+                                        src={activeStay.hostel?.images?.[0]?.imageUrl || activeStay.hostel?.images?.[0]?.url || activeStay.hostel?.images?.[0] || 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=900&q=80'}
+                                        alt={activeStay.hostel?.name}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                        onError={e => { e.target.src = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=900&q=80'; }}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-[#0B1A30] via-[#0B1A30]/30 to-transparent" />
+                                </div>
+                                <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+                                    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                                        <div>
+                                            <h3 className="text-2xl sm:text-3xl font-[900] text-white tracking-tight leading-tight">{activeStay.hostel?.name}</h3>
+                                            <p className="text-white/60 text-sm font-medium mt-1 flex items-center gap-1">
+                                                <FiMapPin size={13} />{activeStay.hostel?.area}, {activeStay.hostel?.city}
+                                            </p>
+                                        </div>
+                                        <div className="text-right shrink-0">
+                                            <p className="text-white/50 text-[9px] font-black uppercase tracking-widest">Monthly Rent</p>
+                                            <p className="text-white text-2xl font-[900]">PKR {activeStay.monthlyPrice?.toLocaleString()}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Stat Cards */}
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                {[
+                                    { label: 'Room Type', value: activeStay.room?.roomType ? (activeStay.room.roomType.charAt(0).toUpperCase() + activeStay.room.roomType.slice(1)) : '\u2014', bg: 'bg-blue-50', text: 'text-blue-600', icon: <FiHome size={20}/> },
+                                    { label: 'Move-in Date', value: formatDate(activeStay.moveInDate, { day: 'numeric', month: 'short', year: 'numeric' }), bg: 'bg-emerald-50', text: 'text-emerald-600', icon: <FiCalendar size={20}/> },
+                                    { label: 'Duration', value: `${activeStay.durationMonths} Month${activeStay.durationMonths > 1 ? 's' : ''}`, bg: 'bg-purple-50', text: 'text-purple-600', icon: <FiArrowRight size={20}/> },
+                                    { label: 'Monthly Rent', value: `PKR ${activeStay.monthlyPrice?.toLocaleString() || '\u2014'}`, bg: 'bg-amber-50', text: 'text-amber-600', icon: <FiFileText size={20}/> },
+                                ].map((item, i) => (
+                                    <motion.div key={i} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
+                                        className="bg-white rounded-[1.75rem] border border-gray-100 shadow-sm p-5 flex flex-col gap-3 hover:shadow-md transition-shadow">
+                                        <div className={`w-10 h-10 rounded-2xl ${item.bg} ${item.text} flex items-center justify-center`}>{item.icon}</div>
+                                        <div>
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.18em]">{item.label}</p>
+                                            <p className="font-[900] text-[#0B1A30] text-base leading-tight mt-0.5">{item.value}</p>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+
+                            {/* Hostel Details */}
+                            <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 flex flex-col gap-6">
+                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Hostel Details</h4>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {[
+                                        { label: 'Gender', value: activeStay.hostel?.gender ? (activeStay.hostel.gender.charAt(0).toUpperCase() + activeStay.hostel.gender.slice(1)) : '\u2014' },
+                                        { label: 'City', value: activeStay.hostel?.city || '\u2014' },
+                                        { label: 'Area / Sector', value: activeStay.hostel?.area || '\u2014' },
+                                        { label: 'Booking Date', value: formatDate(activeStay.createdAt, { day: 'numeric', month: 'short', year: 'numeric' }) },
+                                    ].map((item, i) => (
+                                        <div key={i} className="bg-gray-50 rounded-2xl p-4 flex flex-col justify-center">
+                                            <p className="text-[8px] font-black text-gray-400 uppercase tracking-[0.18em] mb-1">{item.label}</p>
+                                            <p className="font-[900] text-[#0B1A30] text-sm">{item.value}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                                {activeStay.hostel?.amenities && activeStay.hostel.amenities.length > 0 && (
+                                    <div className="mt-2 pt-4 border-t border-gray-50">
+                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Amenities Included</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {activeStay.hostel.amenities.map((a, i) => (
+                                                <span key={i} className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-bold rounded-xl">
+                                                    &#10003; {a}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Review / Reviewed Banner */}
+                            {!activeStay.hasReview ? (
+                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+                                    className="relative overflow-hidden rounded-[2rem] shadow-xl">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-[#0B1A30] via-gray-800 to-primary-900" />
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl" />
+                                    <div className="relative z-10 p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+                                        <div>
+                                            <div className="text-amber-400 text-xl mb-2">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                                            <p className="text-white font-[900] text-xl tracking-tight">How's your stay going?</p>
+                                            <p className="text-white/50 text-sm font-medium mt-1">Your honest review helps other students choose safely</p>
+                                        </div>
+                                        <button onClick={() => setActiveTab('bookings')}
+                                            className="shrink-0 px-7 py-3.5 bg-white text-[#0B1A30] text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-gray-100 transition-all shadow-xl">
+                                            Write a Review
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            ) : (
+                                <div className="flex items-center gap-4 p-5 bg-emerald-50 border border-emerald-100 rounded-[2rem]">
+                                    <div className="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-lg">&#10003;</div>
+                                    <div>
+                                        <p className="font-[900] text-emerald-800 text-sm">Review Submitted</p>
+                                        <p className="text-emerald-600 text-xs font-medium mt-0.5">Thank you for helping other students!</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
+                            className="bg-white rounded-[2.5rem] border-2 border-dashed border-gray-200 py-24 px-8 text-center">
+                            <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-50 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-inner">
+                                <FiBriefcase size={36} className="text-gray-300" />
+                            </div>
+                            <h3 className="text-2xl font-black text-[#0B1A30] uppercase tracking-tighter mb-3">No Active Stay</h3>
+                            <p className="text-gray-400 font-medium max-w-sm mx-auto leading-relaxed">
+                                You don't have a confirmed or active booking right now. Browse verified hostels and secure your accommodation.
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8">
+                                <Link to="/listings" className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#0B1A30] text-white text-xs font-black rounded-2xl hover:bg-gray-800 transition-colors shadow-md">
+                                    Browse Hostels
+                                </Link>
+                                <button onClick={() => setActiveTab('bookings')} className="inline-flex items-center gap-2 px-8 py-3.5 bg-gray-100 text-[#0B1A30] text-xs font-black rounded-2xl hover:bg-gray-200 transition-colors">
+                                    View My Bookings
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
+                </div>
+            )}
+{activeTab === 'browse' && (
                 <div className="flex flex-col items-center justify-center h-full p-20 text-gray-400 animate-fade-in">
                     <FiCompass size={40} className="mb-4 opacity-20" />
                     <p className="font-black uppercase tracking-[0.2em] text-[9px] mb-4">Browse Listings</p>
                     <Link to="/listings" className="px-6 py-3 bg-[#0B1A30] text-white text-sm font-black rounded-2xl hover:bg-gray-800 transition-colors">
-                        Open Listings →
+                        Open Listings â†’
                     </Link>
                 </div>
             )}
@@ -754,7 +632,7 @@ export default function StudentDashboard() {
                     <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-6 border border-gray-100">
                         <FiGrid size={24} className="opacity-20" />
                     </div>
-                    <p className="font-black uppercase tracking-[0.2em] text-[9px]">Coming Soon — <span className="text-[#0B1A30]">{activeTab.replace('_', ' ')}</span></p>
+                    <p className="font-black uppercase tracking-[0.2em] text-[9px]">Coming Soon â€” <span className="text-[#0B1A30]">{activeTab.replace('_', ' ')}</span></p>
                 </div>
             )}
         </DashboardLayout>

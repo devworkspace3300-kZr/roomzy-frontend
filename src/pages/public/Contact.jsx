@@ -16,28 +16,30 @@ export default function Contact() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         // Honeypot check
         if (form.website) {
             console.log('Bot detected');
             return;
         }
 
-        if (!isAuthenticated) {
-            toast.error('Please login to send a direct message. You can also email us directly at ' + APP_CONFIG.supportEmail);
+        if (form.message.length < 10) {
+            toast.error('Message must be at least 10 characters long.');
             return;
         }
 
         setIsSubmitting(true);
         try {
-            await api.post('/chat/direct', {
-                content: `[${form.subject}] ${form.message}`,
-                // recipientId: null // Goes to system admin
+            await api.post('/contact', {
+                name: form.name,
+                email: form.email,
+                subject: form.subject,
+                message: form.message
             });
-            toast.success('Direct message sent! Our team will review it shortly.');
-            setForm({ name: '', email: '', subject: '', message: '' });
+            toast.success('Message sent successfully! We will get back to you within 24 hours.');
+            setForm({ name: '', email: '', subject: '', message: '', website: '' });
         } catch (error) {
-            toast.error('Failed to send message. Please try again or use email.');
+            toast.error('Failed to send message. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
@@ -103,7 +105,7 @@ export default function Contact() {
             </section>
 
             {/* Quick Contact Grid */}
-            <section className="py-24 sm:pb-32">
+            <section className="py-20 sm:pb-32">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-24">
                         {contactInfo.map(({ icon: Icon, title, detail, sub }, i) => (
@@ -115,24 +117,6 @@ export default function Contact() {
                                     <h3 className="font-bold text-text-primary mb-2 tracking-tight">{title}</h3>
                                     <p className="text-sm text-primary-600 font-bold mb-1 break-all">{detail}</p>
                                     <p className="text-xs text-text-muted font-medium">{sub}</p>
-                                </div>
-                            </ScrollReveal>
-                        ))}
-                    </div>
-
-                    {/* Specialized Tracks */}
-                    <div className="grid md:grid-cols-2 gap-8 mb-24">
-                        {supportTracks.map((track, i) => (
-                            <ScrollReveal key={track.title} direction={i === 0 ? 'left' : 'right'}>
-                                <div className="p-10 rounded-[2.5rem] bg-surface-alt border border-border-light flex flex-col items-start gap-6 h-full">
-                                    <div className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center text-primary-500">
-                                        <track.icon size={30} />
-                                    </div>
-                                    <h3 className="text-2xl font-black text-text-primary tracking-tight">{track.title}</h3>
-                                    <p className="text-text-secondary text-lg leading-relaxed flex-grow">{track.desc}</p>
-                                    <Button variant={i === 0 ? 'primary' : 'secondary'} size="lg" className="rounded-2xl" as="a" href={track.path}>
-                                        {track.btnText}
-                                    </Button>
                                 </div>
                             </ScrollReveal>
                         ))}

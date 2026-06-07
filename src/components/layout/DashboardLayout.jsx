@@ -15,7 +15,7 @@ export default function DashboardLayout({ tabs, activeTab, setActiveTab, childre
         const isOwnerListPage = window.location.pathname === '/dashboard/owner/list-hostel';
         const isSubPage = window.location.pathname.includes('/manage-rooms/') || (user?.role === 'student' && window.location.pathname.includes('/bookings'));
 
-        if (id === 'settings' && user?.role !== 'admin') {
+        if (id === 'settings') {
             if (!isSettingsPage) navigate('/dashboard/settings');
         } else if (id === 'dashboard') {
             if (window.location.pathname !== rolePath) navigate(rolePath);
@@ -72,7 +72,7 @@ export default function DashboardLayout({ tabs, activeTab, setActiveTab, childre
                 </div>
 
                 {/* Navigation Tabs with Smooth Transitions */}
-                <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1.5">
+                <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1.5 scrollbar-hide">
                     {tabs.map(({ id, label, icon: Icon }) => {
                         const isActive = activeTab === id;
                         return (
@@ -167,10 +167,7 @@ export default function DashboardLayout({ tabs, activeTab, setActiveTab, childre
                     
                     {/* Right: Actions */}
                     <div className="flex items-center gap-2 sm:gap-4 ml-auto">
-                        <button className="relative p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-full transition-colors">
-                            <FiBell size={20} />
-                            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-                        </button>
+
                         <button 
                             onClick={() => navigate('/dashboard/settings')}
                             className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"

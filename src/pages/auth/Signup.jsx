@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { registerUser } from '../../api/authApi';
+import { registerUser, normalizeAuthResponse } from '../../api/authApi';
 import { motion } from 'framer-motion';
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiPhone } from 'react-icons/fi';
 import Button from '../../components/ui/Button';
@@ -64,17 +64,26 @@ export default function Signup() {
 
         try {
             const result = await registerUser(payload);
+            const authData = normalizeAuthResponse(result);
 
-            if (result.success) {
-                login(result.data.token, result.data.user);
+            if (authData) {
+                login(authData.token, authData.user);
                 toast.success('Account created successfully!');
 
-                if (role === 'student') navigate('/dashboard/student');
-                else if (role === 'owner') navigate('/dashboard/owner');
-                else navigate('/');
+                if (role === 'student') navigate('/dashboard/student', { replace: true });
+                else if (role === 'owner') navigate('/dashboard/owner', { replace: true });
+                else navigate('/', { replace: true });
+            } else {
+                const msg = 'Registration failed. Unexpected server response.';
+                setError(msg);
+                toast.error(msg);
             }
         } catch (err) {
-            const msg = err.response?.data?.message || 'Registration failed. Please try again.';
+            const msg = err.response?.data?.message
+                || (err.request && !err.response
+                    ? 'Cannot reach the server. Make sure the backend is running at http://localhost:3000'
+                    : null)
+                || 'Registration failed. Please try again.';
             setError(msg);
             toast.error(msg);
         } finally {

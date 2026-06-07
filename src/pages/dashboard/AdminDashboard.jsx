@@ -9,7 +9,7 @@ import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import { ADMIN_TABS } from '../../constants/tabs';
 
-// ─── Unified Professional Stat Card Component ───────────────────────────
+// â”€â”€â”€ Unified Professional Stat Card Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function StatCard({ label, value, badge, badgeColor, borderClass, prefix }) {
     return (
         <div className={`bg-white rounded-r-2xl rounded-l-sm p-6 shadow-sm border border-gray-100 border-l-[5px] ${borderClass} flex flex-col justify-between h-32 hover:shadow-md transition-all duration-300`}>
@@ -33,18 +33,18 @@ export default function AdminDashboard() {
     const { user } = useAuth();
     
     const formatDate = (dateString) => {
-        if (!dateString) return '—';
-        if (typeof dateString === 'string' && (dateString.includes('Invalid') || dateString.includes('NaN'))) return '—';
+        if (!dateString) return 'â€”';
+        if (typeof dateString === 'string' && (dateString.includes('Invalid') || dateString.includes('NaN'))) return 'â€”';
         try {
             let formattedStr = dateString;
             if (typeof dateString === 'string' && dateString.includes(' ') && !dateString.includes('T')) {
                 formattedStr = dateString.replace(' ', 'T');
             }
             const d = new Date(formattedStr);
-            if (isNaN(d.getTime())) return '—';
+            if (isNaN(d.getTime())) return 'â€”';
             return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
         } catch (e) {
-            return '—';
+            return 'â€”';
         }
     };
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -63,6 +63,7 @@ export default function AdminDashboard() {
     const [selectedHostelForReview, setSelectedHostelForReview] = useState(null);
     const [financeStats, setFinanceStats] = useState({ totalRevenue: 0, platformFees: 0, growth: 0, recentTransactions: [] });
     const [loadingFinance, setLoadingFinance] = useState(false);
+    const [dashStats, setDashStats] = useState({ totalStudents: 0, totalOwners: 0, verifiedHostels: 0, monthlyBookings: 0 });
     const [hostels, setHostels] = useState([]);
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [updatingBooking, setUpdatingBooking] = useState(false);
@@ -80,6 +81,7 @@ export default function AdminDashboard() {
     const [isHostelEditModalOpen, setIsHostelEditModalOpen] = useState(false);
     const [hostelSearchTerm, setHostelSearchTerm] = useState('');
     const [bookingFilter, setBookingFilter] = useState('all');
+    const [bookingSearchTerm, setBookingSearchTerm] = useState('');
     const [ownerVerificationFilter, setOwnerVerificationFilter] = useState('pending');
     const [hostelVerificationFilter, setHostelVerificationFilter] = useState('pending');
     
@@ -183,17 +185,15 @@ export default function AdminDashboard() {
             case 'dashboard': 
                 console.log('[AdminDashboard] Fetching overview stats...');
                 fetchUsers(); 
-                fetchFinanceStats(); 
                 fetchHostels(); 
+                fetchDashStats();
                 break;
             case 'users': fetchUsers(); break;
             case 'hostels': fetchPendingHostels(); fetchHostels(); break;
             case 'all_hostels': fetchHostels(); break;
             case 'bookings': fetchBookings(); break;
             case 'verifications': fetchPendingOwners(); break;
-            case 'finance': fetchFinanceStats(); break;
             case 'support': fetchSupportInquiries(); break;
-            case 'settings': fetchCommissionRate(); break;
             case 'reviews': fetchReviews(); break;
         }
     }, [activeTab, ownerVerificationFilter, hostelVerificationFilter]);
@@ -336,6 +336,18 @@ export default function AdminDashboard() {
             // Don't show toast error here yet as the endpoint might not exist
         } finally {
             setLoadingFinance(false);
+        }
+    };
+
+    const fetchDashStats = async () => {
+        try {
+            const response = await api.get('/admin/dashboard');
+            const data = response.data?.data || response.data;
+            if (data && typeof data === 'object') {
+                setDashStats(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch dash stats:', error);
         }
     };
 
@@ -534,34 +546,32 @@ export default function AdminDashboard() {
                     {/* Unified Stats Row - Using Professional Navy Theme */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <StatCard 
-                            label="Total Users" 
-                            value={users.length} 
-                            badge={`+${users.filter(u => new Date(u.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length} This Week`} 
-                            badgeColor="text-primary-600 bg-primary-50" 
-                            borderClass="border-[#0B1A30]" 
+                            label="Total Students" 
+                            value={dashStats.totalStudents ?? 0} 
+                            badge="Platform User" 
+                            badgeColor="text-blue-600 bg-blue-50" 
+                            borderClass="border-blue-500" 
                         />
                         <StatCard 
-                            label="Active Hostels" 
-                            value={hostels.filter(h => h.status === 'verified').length || '0'} 
-                            badge={`${hostels.filter(h => h.status === 'pending').length} Pending`} 
-                            badgeColor="text-amber-600 bg-amber-50" 
-                            borderClass="border-primary-400" 
+                            label="Hostel Owners" 
+                            value={dashStats.totalOwners ?? 0} 
+                            badge="Platform Host" 
+                            badgeColor="text-green-600 bg-green-50" 
+                            borderClass="border-green-500" 
                         />
                         <StatCard 
-                            label="Total Revenue" 
-                            value={Number(financeStats?.totalRevenue || 0).toLocaleString()} 
-                            prefix="PKR"
-                            badge={`${bookings.filter(b => b.status === 'confirmed').length} Paid`} 
-                            badgeColor="text-emerald-600 bg-emerald-50" 
-                            borderClass="border-emerald-500" 
+                            label="Verified Hostels" 
+                            value={dashStats.verifiedHostels ?? 0} 
+                            badge="Approved" 
+                            badgeColor="text-purple-600 bg-purple-50" 
+                            borderClass="border-purple-500" 
                         />
                         <StatCard 
-                            label="Platform Fee" 
-                            value={Number(financeStats?.platformFees || 0).toLocaleString()} 
-                            prefix="PKR"
-                            badge="10% Cut" 
-                            badgeColor="text-primary-600 bg-primary-50" 
-                            borderClass="border-primary-500" 
+                            label="Bookings (Month)" 
+                            value={dashStats.monthlyBookings ?? 0} 
+                            badge="Recent" 
+                            badgeColor="text-orange-600 bg-orange-50" 
+                            borderClass="border-orange-500" 
                         />
                     </div>
 
@@ -582,24 +592,26 @@ export default function AdminDashboard() {
                                         </span>
                                     </div>
                                 </div>
-                                <div className="h-64 flex items-end justify-between gap-3 px-2 border-b border-gray-100 pb-2">
-                                    {[
-                                        { month: 'MAY', u: 40, h: 20 },
-                                        { month: 'JUN', u: 55, h: 30 },
-                                        { month: 'JUL', u: 45, h: 35 },
-                                        { month: 'AUG', u: 65, h: 50 },
-                                        { month: 'SEP', u: 75, h: 65 },
-                                        { month: 'OCT', u: 90, h: 80 },
-                                    ].map((d, i) => (
-                                        <div key={i} className="flex flex-col items-center flex-1 group relative">
-                                            <div className="w-full flex justify-center gap-1.5 h-48 items-end">
-                                                <div className="w-4 bg-[#0B1A30] rounded-t-md transition-all duration-500 group-hover:scale-y-105 origin-bottom opacity-90 group-hover:opacity-100 shadow-sm" style={{ height: `${d.u * 1.5}px` }}></div>
-                                                <div className="w-4 bg-primary-400 rounded-t-md transition-all duration-500 group-hover:scale-y-105 origin-bottom opacity-80 group-hover:opacity-100 shadow-sm" style={{ height: `${d.h * 1.5}px` }}></div>
-                                            </div>
-                                            <span className="text-[10px] font-black text-gray-400 mt-5 tracking-widest">{d.month}</span>
+                                {(() => {
+                                    const growth = dashStats.platformGrowth || [];
+                                    const maxVal = Math.max(...growth.map(d => Math.max(d.u || 0, d.h || 0)), 1);
+                                    return (
+                                        <div className="h-64 flex items-end justify-between gap-3 px-2 border-b border-gray-100 pb-2">
+                                            {growth.map((d, i) => (
+                                                <div key={i} className="flex flex-col items-center flex-1 group relative">
+                                                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-[#0B1A30] text-white text-[8px] font-black px-2 py-1 rounded-lg whitespace-nowrap z-10">
+                                                        {d.u}U / {d.h}H
+                                                    </div>
+                                                    <div className="w-full flex justify-center gap-1.5 h-48 items-end">
+                                                        <div className="w-4 bg-[#0B1A30] rounded-t-md transition-all duration-700 group-hover:brightness-125 origin-bottom opacity-90 shadow-sm" style={{ height: `${Math.max((d.u / maxVal) * 176, d.u > 0 ? 4 : 0)}px` }}></div>
+                                                        <div className="w-4 bg-primary-400 rounded-t-md transition-all duration-700 group-hover:brightness-125 origin-bottom opacity-80 shadow-sm" style={{ height: `${Math.max((d.h / maxVal) * 176, d.h > 0 ? 4 : 0)}px` }}></div>
+                                                    </div>
+                                                    <span className="text-[10px] font-black text-gray-400 mt-5 tracking-widest">{d.month}</span>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
-                                </div>
+                                    );
+                                })()}
                             </div>
 
                             {/* Recent Activity */}
@@ -646,9 +658,8 @@ export default function AdminDashboard() {
                                 <h3 className="text-lg font-black text-[#0B1A30] mb-8 flex items-center gap-2 uppercase tracking-tighter"><FiPieChart className="text-primary-600"/> Platform Metrics</h3>
                                 <div className="space-y-8">
                                     {[
-                                        { label: 'Student Acceptance', val: 92, color: 'bg-[#0B1A30]' },
-                                        { label: 'Hostel Verifications', val: 78, color: 'bg-primary-500' },
-                                        { label: 'Owner Approvals', val: 85, color: 'bg-emerald-500' },
+                                        { label: 'Student Acceptance', val: dashStats.platformMetrics?.studentAcceptance ?? 0, color: 'bg-[#0B1A30]' },
+                                        { label: 'Hostel Verifications', val: dashStats.platformMetrics?.hostelVerifications ?? 0, color: 'bg-primary-500' },
                                     ].map((item, i) => (
                                         <div key={i}>
                                             <div className="flex justify-between text-[10px] font-black mb-3 uppercase tracking-[0.15em]">
@@ -663,21 +674,7 @@ export default function AdminDashboard() {
                                 </div>
                             </div>
 
-                            {/* System Alerts */}
-                            <div className="bg-[#0B1A30] rounded-[2rem] p-8 text-white relative overflow-hidden shadow-2xl">
-                                <div className="absolute top-0 right-0 w-40 h-40 bg-primary-500/20 rounded-full blur-[60px] -mr-10 -mt-10"></div>
-                                <h3 className="text-lg font-black mb-6 relative z-10 flex items-center gap-2 uppercase tracking-tighter"><FiAlertCircle className="text-primary-400"/> Critical Health</h3>
-                                <div className="space-y-5 relative z-10">
-                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors cursor-pointer">
-                                        <p className="text-[10px] font-black uppercase text-primary-400 tracking-widest">Database System</p>
-                                        <p className="text-sm font-bold mt-1.5">Auto-backup scheduled in 2h</p>
-                                    </div>
-                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors cursor-pointer">
-                                        <p className="text-[10px] font-black uppercase text-amber-400 tracking-widest">Security Protocol</p>
-                                        <p className="text-sm font-bold mt-1.5">3 Unusual login attempts</p>
-                                    </div>
-                                </div>
-                            </div>
+                            {/* Removed Critical Health Widget as per instructions */}
                         </div>
                     </div>
                 </div>
@@ -726,7 +723,7 @@ export default function AdminDashboard() {
                             </div>
                         </div>
 
-                        <div className="overflow-x-auto">
+                        <div className="overflow-x-auto scrollbar-hide">
                             <table className="w-full text-left">
                                 <thead className="bg-[#F8F9FA] text-[#0B1A30] text-[10px] font-black uppercase tracking-[0.2em]">
                                     <tr>
@@ -937,7 +934,7 @@ export default function AdminDashboard() {
                                 />
                             </div>
                         </div>
-                        <div className="overflow-x-auto">
+                        <div className="overflow-x-auto scrollbar-hide">
                             {loadingHostels ? (
                                 <div className="p-20 text-center">
                                     <div className="animate-spin w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full mx-auto" />
@@ -1032,7 +1029,7 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="overflow-x-auto">
+                        <div className="overflow-x-auto scrollbar-hide">
                             <table className="w-full text-left">
                                 <thead className="bg-[#F8F9FA] text-[#0B1A30] text-[10px] font-black uppercase tracking-[0.2em]">
                                     <tr>
@@ -1333,7 +1330,7 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="overflow-x-auto">
+                        <div className="overflow-x-auto scrollbar-hide">
                             <table className="w-full text-left">
                                 <thead className="bg-[#F8F9FA] text-[#0B1A30] text-[10px] font-black uppercase tracking-[0.2em]">
                                     <tr>
@@ -1573,7 +1570,11 @@ export default function AdminDashboard() {
                     
                     <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
                         <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 bg-gray-50/30">
-                            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
+                            <div className="relative max-w-sm w-full shrink-0">
+                                <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input type="text" placeholder="Search by student or property..." value={bookingSearchTerm} onChange={e => setBookingSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-100 rounded-xl outline-none text-sm font-medium focus:border-[#0B1A30]/20" />
+                            </div>
+                            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 md:pb-0">
                                 {['all', 'pending', 'approved', 'confirmed', 'active_stay', 'rejected', 'cancelled', 'completed'].map(s => (
                                     <button 
                                         key={s}
@@ -1587,13 +1588,13 @@ export default function AdminDashboard() {
                             <Button variant="outline" onClick={handleExportBookings} size="sm" className="border-gray-200">Export Bookings</Button>
                         </div>
 
-                        <div className="overflow-x-auto">
+                        <div className="overflow-x-auto scrollbar-hide">
                             {loadingBookings ? (
                                 <div className="p-20 text-center text-gray-400">
                                     <div className="animate-spin w-8 h-8 border-2 border-[#0B1A30] border-t-transparent rounded-full mx-auto mb-4" />
                                     <p className="text-[10px] font-black uppercase tracking-widest">Fetching all bookings...</p>
                                 </div>
-                            ) : bookings.filter(b => bookingFilter === 'all' || b.status === bookingFilter).length === 0 ? (
+                            ) : bookings.filter(b => (bookingFilter === 'all' || b.status === bookingFilter) && (b.student?.fullName?.toLowerCase().includes(bookingSearchTerm.toLowerCase()) || b.hostel?.name?.toLowerCase().includes(bookingSearchTerm.toLowerCase()))).length === 0 ? (
                                 <div className="p-20 text-center border-2 border-dashed border-gray-50 m-6 rounded-[2rem]">
                                     <FiCalendar size={60} className="mx-auto mb-6 text-gray-100" />
                                     <h3 className="text-xl font-black text-[#0B1A30] uppercase tracking-tighter mb-2">No Bookings Found</h3>
@@ -1613,7 +1614,7 @@ export default function AdminDashboard() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
-                                        {bookings.filter(b => bookingFilter === 'all' || b.status === bookingFilter).map((b) => {
+                                        {bookings.filter(b => (bookingFilter === 'all' || b.status === bookingFilter) && (b.student?.fullName?.toLowerCase().includes(bookingSearchTerm.toLowerCase()) || b.hostel?.name?.toLowerCase().includes(bookingSearchTerm.toLowerCase()))).map((b) => {
                                             const statusColors = {
                                                 pending:    'text-amber-600 bg-amber-50',
                                                 approved:   'text-blue-600 bg-blue-50',
@@ -1654,7 +1655,7 @@ export default function AdminDashboard() {
                                                         </span>
                                                     </td>
                                                     <td className="px-8 py-5 font-bold text-[#0B1A30] text-xs">
-                                                        {b.moveInDate ? new Date(b.moveInDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                                                        {b.moveInDate ? new Date(b.moveInDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'â€”'}
                                                     </td>
                                                     <td className="px-8 py-5 text-right font-black text-[#0B1A30] text-xs">
                                                         PKR {b.monthlyPrice?.toLocaleString()}
@@ -1686,171 +1687,7 @@ export default function AdminDashboard() {
                 </div>
             )}
 
-            {activeTab === 'finance' && (
-                <div className="space-y-8 animate-fade-in pb-8">
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <h2 className="text-3xl font-[900] text-[#0B1A30] tracking-tight">Platform Finance</h2>
-                            <p className="text-gray-500 mt-1 font-medium">Revenue tracking, payouts and platform commissions</p>
-                        </div>
-                    </div>
-                    
-                    {/* Finance Stats Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <StatCard 
-                            label="Total Revenue" 
-                            value={financeStats.totalRevenue?.toLocaleString()} 
-                            prefix="PKR"
-                            badge="Platform Total" 
-                            badgeColor="text-emerald-600 bg-emerald-50" 
-                            borderClass="border-emerald-500" 
-                        />
-                        <StatCard 
-                            label="Platform Earnings" 
-                            value={financeStats.platformFees?.toLocaleString()} 
-                            prefix="PKR"
-                            badge="Commission" 
-                            badgeColor="text-primary-600 bg-primary-50" 
-                            borderClass="border-[#0B1A30]" 
-                        />
-                        <StatCard 
-                            label="Transactions" 
-                            value={financeStats.totalTransactions} 
-                            badge="Completed" 
-                            badgeColor="text-gray-600 bg-gray-100" 
-                            borderClass="border-gray-200" 
-                        />
-                    </div>
 
-                    <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="p-6 border-b border-gray-100 bg-gray-50/20">
-                            <h3 className="text-md font-black text-[#0B1A30] uppercase tracking-tighter">Recent Transactions</h3>
-                        </div>
-                        <div className="overflow-x-auto">
-                            {loadingFinance ? (
-                                <div className="p-20 text-center text-gray-400">
-                                    <div className="animate-spin w-8 h-8 border-2 border-[#0B1A30] border-t-transparent rounded-full mx-auto mb-4" />
-                                    <p className="text-[10px] font-black uppercase tracking-widest">Accessing Ledger...</p>
-                                </div>
-                            ) : financeStats.recentTransactions?.length === 0 ? (
-                                <div className="p-20 text-center">
-                                    <FiDollarSign size={60} className="mx-auto mb-6 text-gray-100" />
-                                    <h3 className="text-xl font-black text-[#0B1A30] uppercase tracking-tighter mb-2">No Transactions Yet</h3>
-                                    <p className="text-gray-400 font-medium">Platform financial data will appear here once payments are processed.</p>
-                                </div>
-                            ) : (
-                                <table className="w-full text-left">
-                                    <thead className="bg-[#F8F9FA] text-[#0B1A30] text-[9px] font-black uppercase tracking-[0.2em]">
-                                        <tr>
-                                            <th className="px-8 py-5">Student</th>
-                                            <th className="px-8 py-5">Hostel</th>
-                                            <th className="px-8 py-5">Date</th>
-                                            <th className="px-8 py-5">Fee</th>
-                                            <th className="px-8 py-5 text-right">Total Amount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100">
-                                        {financeStats.recentTransactions.map((t) => (
-                                            <tr key={t.id} className="hover:bg-gray-50/30 transition-colors">
-                                                <td className="px-8 py-5 font-bold text-[#0B1A30] text-sm">{t.student}</td>
-                                                <td className="px-8 py-5 text-gray-500 text-xs font-medium">{t.hostel}</td>
-                                                <td className="px-8 py-5 text-gray-500 text-xs">{new Date(t.date).toLocaleDateString('en-GB')}</td>
-                                                <td className="px-8 py-5 text-primary-600 font-bold text-xs">PKR {t.fee.toLocaleString()}</td>
-                                                <td className="px-8 py-5 text-right font-black text-[#0B1A30] text-sm">PKR {t.amount.toLocaleString()}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {activeTab === 'settings' && (
-                <div className="space-y-8 animate-fade-in pb-8">
-                    <div>
-                        <h2 className="text-3xl font-[900] text-[#0B1A30] tracking-tight">System Settings</h2>
-                        <p className="text-gray-500 mt-1 font-medium">Configure global platform rules and fees</p>
-                    </div>
-
-                    <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden max-w-3xl">
-                        <div className="p-8 border-b border-gray-100 bg-gray-50/30">
-                            <h3 className="text-lg font-black text-[#0B1A30] uppercase tracking-tighter">Commission Setup</h3>
-                            <p className="text-xs text-gray-400 mt-1">Configure how platform fees are calculated for online payments</p>
-                        </div>
-                        <div className="p-8 space-y-8">
-                            
-                            {/* Commission Mode Selection */}
-                            <div>
-                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 block">Commission Mode</label>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    {['percentage', 'fixed', 'hybrid'].map((m) => (
-                                        <button
-                                            key={m}
-                                            onClick={() => setCommissionSettings({ ...commissionSettings, mode: m })}
-                                            className={`px-4 py-4 rounded-2xl border text-sm font-bold uppercase tracking-widest transition-all ${
-                                                commissionSettings.mode === m 
-                                                    ? 'bg-[#0B1A30] border-[#0B1A30] text-white' 
-                                                    : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
-                                            }`}
-                                        >
-                                            {m}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                {/* Percentage Rate Input */}
-                                <div className={commissionSettings.mode === 'fixed' ? 'opacity-30 pointer-events-none' : ''}>
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Percentage Rate (%)</label>
-                                    <div className="relative">
-                                        <input
-                                            type="number"
-                                            value={commissionSettings.rate}
-                                            onChange={(e) => setCommissionSettings({ ...commissionSettings, rate: e.target.value })}
-                                            disabled={loadingSettings || savingSettings}
-                                            className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:border-[#0B1A30]/20 font-bold text-lg text-[#0B1A30]"
-                                            min="0"
-                                            max="100"
-                                            step="0.1"
-                                        />
-                                        <span className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 font-black text-lg">%</span>
-                                    </div>
-                                </div>
-
-                                {/* Fixed Fee Input */}
-                                <div className={commissionSettings.mode === 'percentage' ? 'opacity-30 pointer-events-none' : ''}>
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Fixed Base Fee (PKR)</label>
-                                    <div className="relative">
-                                        <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 font-black text-[10px] uppercase tracking-widest">PKR</span>
-                                        <input
-                                            type="number"
-                                            value={commissionSettings.fixedFee}
-                                            onChange={(e) => setCommissionSettings({ ...commissionSettings, fixedFee: e.target.value })}
-                                            disabled={loadingSettings || savingSettings}
-                                            className="w-full pl-14 pr-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:border-[#0B1A30]/20 font-bold text-lg text-[#0B1A30]"
-                                            min="0"
-                                            step="100"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="pt-4 border-t border-gray-100 flex justify-end">
-                                <button
-                                    onClick={handleSaveCommissionRate}
-                                    disabled={savingSettings || loadingSettings}
-                                    className="px-8 py-4 bg-[#0B1A30] hover:bg-gray-800 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-lg disabled:opacity-50 flex items-center gap-2"
-                                >
-                                    {savingSettings ? 'Saving...' : 'Update Settings'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {activeTab === 'reviews' && (
                 <div className="space-y-8 animate-fade-in pb-8">
@@ -1900,7 +1737,7 @@ export default function AdminDashboard() {
                                                             {review.status || 'pending'}
                                                         </span>
                                                     </div>
-                                                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">{review.hostel_name || 'Hostel'} • Duration: {review.stay_duration_months || 0} Months</p>
+                                                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">{review.hostel_name || 'Hostel'} â€¢ Duration: {review.stay_duration_months || 0} Months</p>
                                                 </div>
                                             </div>
 
@@ -1961,6 +1798,24 @@ export default function AdminDashboard() {
                                 ))}
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {activeTab === 'settings' && (
+                <div className="space-y-8 animate-fade-in pb-8">
+                    <div>
+                        <h2 className="text-3xl font-[900] text-[#0B1A30] tracking-tight">Account Settings</h2>
+                        <p className="text-gray-500 mt-1 font-medium">Manage your admin profile and preferences</p>
+                    </div>
+                    <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-8">
+                        <p className="text-sm text-gray-500 font-medium">Click below to access the full account settings page.</p>
+                        <button
+                            onClick={() => window.location.href = '/dashboard/settings'}
+                            className="mt-4 px-6 py-3 bg-[#0B1A30] text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-gray-800 transition-all"
+                        >
+                            Open Account Settings
+                        </button>
                     </div>
                 </div>
             )}

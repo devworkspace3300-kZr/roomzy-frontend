@@ -155,37 +155,12 @@ export default function ListHostel() {
     };
 
     const nextStep = () => {
-        if (currentStep === 1) {
-            if (!formData.name || formData.description.length < 100) {
-                toast.error('Please provide a name and a description (min 100 chars)');
-                return;
-            }
-        }
-        if (currentStep === 2) {
-            if (!formData.city || !formData.area || !formData.fullAddress) {
-                toast.error('All location fields are required');
-                return;
-            }
-            if (!formData.latitude || !formData.longitude) {
-                toast.error('Coordinates are required for map verification');
-                return;
-            }
-        }
         setCurrentStep(prev => Math.min(prev + 1, STEPS.length));
     };
 
     const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
     const handleSubmit = async () => {
-        if (tempImages.length < 4) {
-            toast.error('Minimum 4 images required');
-            return;
-        }
-        if (!formData.startingPrice) {
-            toast.error('Please set a starting price');
-            return;
-        }
-
         setLoading(true);
         try {
             const uploadedUrls = [];

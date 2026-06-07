@@ -1,5 +1,20 @@
 import api from './axios';
 
+/** Normalize login/register payloads from wrapped or direct API responses. */
+export function normalizeAuthResponse(result) {
+  if (!result) return null;
+
+  if (result.success && result.data?.token && result.data?.user) {
+    return { token: result.data.token, user: result.data.user };
+  }
+
+  if (result.token && result.user) {
+    return { token: result.token, user: result.user };
+  }
+
+  return null;
+}
+
 // POST /auth/register
 // dto: { fullName, email, phone, password, role, gender?, city? }
 export const registerUser = async (formData) => {
@@ -10,14 +25,8 @@ export const registerUser = async (formData) => {
 // POST /auth/login
 // dto: { email, password }
 export const loginUser = async (email, password) => {
-  try {
-    const response = await api.post('/auth/login', { email, password });
-    // The server already wraps response in { success, data, ... }
-    return response.data;
-  } catch (err) {
-    // Propagate error so Login.jsx can handle it
-    throw err;
-  }
+  const response = await api.post('/auth/login', { email, password });
+  return response.data;
 };
 
 // GET /auth/me — requires token (added automatically by interceptor)

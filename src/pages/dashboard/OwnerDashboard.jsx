@@ -64,7 +64,7 @@ export default function OwnerDashboard() {
         setLoadingEarnings(true);
         try {
             const response = await api.get('/payments/owner/earnings');
-            setEarnings(response.data || { totalRevenue: 0, platformFees: 0, netPayout: 0, totalTransactions: 0, recentTransactions: [] });
+            setEarnings(response.data?.data || { totalRevenue: 0, platformFees: 0, netPayout: 0, totalTransactions: 0, recentTransactions: [] });
         } catch (error) {
             console.error('Failed to fetch earnings:', error);
             toast.error('Failed to load earnings data');
@@ -320,39 +320,7 @@ export default function OwnerDashboard() {
                         {/* Main Column */}
                         <div className="flex-1 space-y-6 lg:space-y-8 min-w-0">
                             
-                            {/* Revenue Trend Chart - Unified Colors */}
-                            <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-6 sm:p-8">
-                                <div className="flex items-center justify-between mb-10">
-                                    <h3 className="text-lg font-black text-[#0B1A30] uppercase tracking-tighter flex items-center gap-2">
-                                        <FiTrendingUp className="text-primary-500"/> Revenue Analytics
-                                    </h3>
-                                    <div className="flex gap-4">
-                                        <span className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
-                                            <span className="w-2.5 h-2.5 rounded-full bg-[#0B1A30]"></span> Monthly
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="h-56 flex items-end justify-between gap-2 sm:gap-4 px-1">
-                                    {[
-                                        { month: 'JUN', height: '55%' },
-                                        { month: 'JUL', height: '40%' },
-                                        { month: 'AUG', height: '65%' },
-                                        { month: 'SEP', height: '50%' },
-                                        { month: 'OCT', height: '90%', val: '842k', active: true },
-                                    ].map((bar, i) => (
-                                        <div key={i} className="flex flex-col items-center flex-1 group">
-                                            {bar.active && <div className="text-[10px] font-black text-[#0B1A30] mb-2 tracking-tighter">PKR {bar.val}</div>}
-                                            <div className="w-full max-w-[50px] relative flex items-end justify-center" style={{ height: '180px' }}>
-                                                <div 
-                                                    className={`w-full rounded-t-xl transition-all duration-700 ${bar.active ? 'bg-[#0B1A30]' : 'bg-gray-100 group-hover:bg-primary-400'}`} 
-                                                    style={{ height: bar.height }} 
-                                                />
-                                            </div>
-                                            <div className={`text-[9px] font-black mt-3 tracking-widest ${bar.active ? 'text-[#0B1A30]' : 'text-gray-400'}`}>{bar.month}</div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+
 
                             {/* My Properties Table - Dynamic */}
                             <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
@@ -486,18 +454,7 @@ export default function OwnerDashboard() {
                                 </div>
                             </div>
 
-                            {/* Promotional Insights */}
-                            <div className="bg-[#EEF2F6] rounded-[2rem] p-8 border border-[#E2E8F0] relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-[#0B1A30]/5 rounded-full blur-2xl transition-transform group-hover:scale-150 duration-700"></div>
-                                <div className="relative z-10">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="p-2 bg-[#0B1A30] text-white rounded-xl shadow-md"><FiTrendingUp size={18} /></div>
-                                        <h3 className="text-[10px] font-black text-[#0B1A30] uppercase tracking-[0.2em]">Insights</h3>
-                                    </div>
-                                    <p className="text-xs text-gray-600 leading-relaxed mb-6 font-medium">Add professional photos to your listings to increase interest by <span className="font-black text-[#0B1A30]">40%</span>.</p>
-                                    <button className="text-[9px] font-black text-primary-600 flex items-center gap-1 uppercase tracking-widest group-hover:text-[#0B1A30] transition-colors">Optimize Now →</button>
-                                </div>
-                            </div>
+
                         </div>
                     </div>
                 </div>

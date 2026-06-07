@@ -5,7 +5,6 @@ export const STUDENT_TABS = [
     { id: 'browse', label: 'Browse', icon: FiCompass },
     { id: 'bookings', label: 'My Bookings', icon: FiCalendar },
     { id: 'active_stay', label: 'Active Stay', icon: FiBriefcase },
-    { id: 'messages', label: 'Messages', icon: FiMessageSquare },
     { id: 'saved', label: 'Saved', icon: FiBookmark },
     { id: 'settings', label: 'Settings', icon: FiSettings },
 ];
@@ -15,9 +14,6 @@ export const OWNER_TABS = [
     { id: 'hostels', label: 'My Hostels', icon: FiHome },
     { id: 'requests', label: 'Booking Requests', icon: FiInbox },
     { id: 'stays', label: 'Active Stays', icon: FiUsers },
-    { id: 'earnings', label: 'Earnings', icon: FiDollarSign },
-    { id: 'reports', label: 'Reports', icon: FiPieChart },
-    { id: 'messages', label: 'Messages', icon: FiMessageSquare },
     { id: 'settings', label: 'Settings', icon: FiSettings },
 ];
 
@@ -28,10 +24,8 @@ export const ADMIN_TABS = [
     { id: 'hostels', label: 'Hostel Verifications', icon: FiInbox },
     { id: 'verifications', label: 'Owner Verifications', icon: FiShield },
     { id: 'bookings', label: 'All Bookings', icon: FiCalendar },
-    { id: 'finance', label: 'Platform Finance', icon: FiDollarSign },
     { id: 'reviews', label: 'Student Reviews', icon: FiBookmark },
-    { id: 'support', label: 'Support Inbox', icon: FiMessageSquare },
-    { id: 'settings', label: 'System Settings', icon: FiSettings },
+    { id: 'settings', label: 'Account Settings', icon: FiSettings },
 ];
 
 export const getTabsByRole = (role) => {

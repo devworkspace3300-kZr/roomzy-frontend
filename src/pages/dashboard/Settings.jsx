@@ -10,8 +10,6 @@ import toast from 'react-hot-toast';
 
 const SETTINGS_TABS = [
     { id: 'profile', label: 'My Profile', icon: FiUser },
-    { id: 'security', label: 'Security', icon: FiShield },
-    { id: 'notifications', label: 'Notifications', icon: FiBell },
 ];
 
 export default function Settings() {
@@ -228,27 +226,7 @@ export default function Settings() {
                         </div>
                     )}
 
-                    {activeTab === 'security' && (
-                        <div className="p-12 text-center space-y-6">
-                            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto border border-gray-100">
-                                <FiLock size={32} className="text-gray-300" />
-                            </div>
-                            <h4 className="text-xl font-black text-[#0B1A30] tracking-tight">Security & Password</h4>
-                            <p className="text-gray-400 max-w-sm mx-auto font-medium">Update your password and manage two-factor authentication for maximum account safety.</p>
-                            <Button variant="outline" className="border-gray-200 text-xs font-black uppercase tracking-widest">Update Security Keys</Button>
-                        </div>
-                    )}
 
-                    {activeTab === 'notifications' && (
-                        <div className="p-12 text-center space-y-6">
-                            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto border border-gray-100">
-                                <FiBell size={32} className="text-gray-300" />
-                            </div>
-                            <h4 className="text-xl font-black text-[#0B1A30] tracking-tight">Notification Preference</h4>
-                            <p className="text-gray-400 max-w-sm mx-auto font-medium">Configure how you receive booking alerts and system updates via email and push.</p>
-                            <Button variant="outline" className="border-gray-200 text-xs font-black uppercase tracking-widest">Manage Alerts</Button>
-                        </div>
-                    )}
                 </div>
             </div>
         </DashboardLayout>

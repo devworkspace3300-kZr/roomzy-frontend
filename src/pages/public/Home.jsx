@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiSearch, FiMapPin, FiShield, FiCheckCircle, FiUsers, FiArrowRight, FiStar } from 'react-icons/fi';
@@ -18,6 +18,8 @@ export default function Home() {
     const [dynamicInstitutions, setDynamicInstitutions] = useState([]);
     const [dynamicCities, setDynamicCities] = useState([]);
     const navigate = useNavigate();
+    const [popularAreas, setPopularAreas] = useState([]);
+    const [testimonials, setTestimonials] = useState([]);
 
     const [cityCounts, setCityCounts] = useState({});
     const [areaCounts, setAreaCounts] = useState({});
@@ -56,7 +58,7 @@ export default function Home() {
                     api.get('/institutes'),
                     api.get('/hostels')
                 ]);
-                
+
                 const instsRaw = instRes.data?.data || instRes.data || [];
                 const hostelsRaw = hostRes.data?.data || hostRes.data || [];
                 const allHostels = [...hostelsRaw];
@@ -82,15 +84,15 @@ export default function Home() {
                     ...i,
                     city: i.city || i.cityName || cityMap[i.cityId?.toLowerCase()] || (CITIES.find(c => c.id === i.cityId)?.name) || ''
                 }));
-                
+
                 setDynamicInstitutions(enrichedInsts);
-                
+
                 // Extract unique cities same as Listings.jsx
                 const cityNames = [...new Set([
                     ...allHostels.map(h => h.city),
                     ...enrichedInsts.map(i => i.city)
                 ])].filter(Boolean);
-                
+
                 const cities = cityNames.map(c => ({
                     id: c.toLowerCase(),
                     name: c
@@ -107,11 +109,11 @@ export default function Home() {
         if (e && typeof e.preventDefault === 'function') {
             e.preventDefault();
         }
-        
+
         const params = new URLSearchParams();
         if (searchCity) params.set('city', searchCity);
         if (searchInst) params.set('institute', searchInst);
-        
+
         const searchUrl = `/listings?${params.toString()}`;
         console.log('Searching with:', { city: searchCity, institute: searchInst, url: searchUrl });
         navigate(searchUrl);
@@ -194,7 +196,7 @@ export default function Home() {
                                         }}
                                         className="w-full pl-14 pr-4 py-3.5 bg-transparent text-gray-900 font-semibold text-sm border-none focus:outline-none focus:ring-0 focus:bg-white appearance-none cursor-pointer rounded-xl transition-all"
                                     >
-                                        <option value="">City?</option>
+                                        <option value="">City</option>
                                         {CITIES.map((city) => (
                                             <option key={city.id} value={city.id}>{city.name}</option>
                                         ))}
@@ -227,9 +229,9 @@ export default function Home() {
                                     </select>
                                 </div>
 
-                                <Button 
+                                <Button
                                     type="submit"
-                                    size="lg" 
+                                    size="lg"
                                     className="w-full sm:w-auto h-[52px] sm:px-10 rounded-xl shadow-lg shadow-primary-200 hover:shadow-primary-300 transition-all active:scale-95 group relative overflow-hidden"
                                 >
                                     <span className="relative z-10 flex items-center gap-2">
@@ -349,10 +351,10 @@ export default function Home() {
                     </ScrollReveal>
 
                     <div className="flex overflow-x-auto lg:grid lg:grid-cols-6 gap-4 sm:gap-6 pb-6 scrollbar-hide px-4 -mx-4 snap-x">
-                        {POPULAR_AREAS.map((area, i) => (
+                        {(popularAreas.length > 0 ? popularAreas : POPULAR_AREAS).map((area, i) => (
                             <ScrollReveal key={area.id} delay={i * 0.05} className="min-w-[200px] sm:min-w-[240px] lg:min-w-0 snap-start">
                                 <Link
-                                    to={`/listings?area=${area.id}`}
+                                    to={popularAreas.length > 0 ? `/listings?city=${area.id}` : `/listings?area=${area.id}`}
                                     className="group relative block rounded-3xl overflow-hidden aspect-square sm:aspect-[4/5] shadow-sm hover:shadow-card-hover transition-all duration-300 transform hover:-translate-y-1"
                                 >
                                     <img
@@ -423,10 +425,10 @@ export default function Home() {
                             <ScrollReveal key={uni.id} delay={i * 0.1} className="min-w-[260px] sm:min-w-[300px] lg:min-w-0 snap-start">
                                 <Link to={`/listings?institute=${uni.id}`} className="group relative bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-card-hover hover:-translate-y-1 transition-all block h-full">
                                     <div className="aspect-[4/3] overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
-                                        <img 
-                                            src={uni.image || 'https://images.unsplash.com/photo-1562774053-701939374585?w=600&q=80'} 
-                                            alt={uni.name} 
-                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                                        <img
+                                            src={uni.image || 'https://images.unsplash.com/photo-1562774053-701939374585?w=600&q=80'}
+                                            alt={uni.name}
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                         />
                                     </div>
                                     <div className="p-6">
@@ -598,7 +600,7 @@ export default function Home() {
                     </ScrollReveal>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {TESTIMONIALS.map((t, i) => (
+                        {(testimonials.length > 0 ? testimonials : TESTIMONIALS).map((t, i) => (
                             <ScrollReveal key={t.id} delay={i * 0.1}>
                                 <div className="bg-white rounded-2xl p-6 shadow-card border border-border-light hover:shadow-card-hover transition-shadow h-full flex flex-col">
                                     <div className="flex items-center gap-1 mb-4">

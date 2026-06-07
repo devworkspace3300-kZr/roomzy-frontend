@@ -48,7 +48,12 @@ api.interceptors.response.use(
       // Token expired or invalid — clear everything and redirect to login
       localStorage.removeItem('roomzy_token');
       localStorage.removeItem('roomzy_user');
-      window.location.href = '/login';
+
+      const authPaths = ['/login', '/signup', '/forgot-password', '/otp-verification'];
+      const onAuthPage = authPaths.some((path) => window.location.pathname.startsWith(path));
+      if (!onAuthPage) {
+        window.location.href = '/login';
+      }
     }
     // Re-throw the error so individual API calls can catch it too
     return Promise.reject(error);
