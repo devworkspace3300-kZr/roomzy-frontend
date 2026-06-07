@@ -20,9 +20,15 @@ export default function Home() {
     const navigate = useNavigate();
     const [popularAreas, setPopularAreas] = useState([]);
     const [testimonials, setTestimonials] = useState([]);
+    const [testimonialsLoading, setTestimonialsLoading] = useState(true);
 
     const [cityCounts, setCityCounts] = useState({});
     const [areaCounts, setAreaCounts] = useState({});
+    const [deferredPrompt, setDeferredPrompt] = useState(null);
+    const [pwaInstalled, setPwaInstalled] = useState(false);
+    const [showInstallModal, setShowInstallModal] = useState(false);
+    const [showApkBanner, setShowApkBanner] = useState(true);
+    const [apkDownloading, setApkDownloading] = useState(false);
 
     useEffect(() => {
         // Fetch featured hostels
@@ -104,16 +110,44 @@ export default function Home() {
         };
         fetchMetadata();
 
-        // Fetch testimonials
+        // PWA install prompt
+        const handleBeforeInstallPrompt = (e) => {
+            e.preventDefault();
+            setDeferredPrompt(e);
+        };
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        window.addEventListener('appinstalled', () => setPwaInstalled(true));
+
+        // Fetch testimonials from DB
         api.get('/reviews/public/testimonials')
             .then(res => {
                 const fetched = res.data?.data || res.data || [];
-                if (Array.isArray(fetched) && fetched.length > 0) {
-                    setTestimonials(fetched);
-                }
+                setTestimonials(Array.isArray(fetched) ? fetched : []);
             })
-            .catch(() => {});
+            .catch(() => setTestimonials([]))
+            .finally(() => setTestimonialsLoading(false));
+
+        return () => {
+            window.removeEventListener('beforeinstallprompt', () => {});
+        };
     }, []);
+
+    const handleInstallPwa = async () => {
+        if (deferredPrompt) {
+            setShowInstallModal(false);
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') setPwaInstalled(true);
+            setDeferredPrompt(null);
+        } else {
+            setShowInstallModal(false);
+        }
+    };
+
+    const handleApkDownload = () => {
+        setApkDownloading(true);
+        setTimeout(() => setApkDownloading(false), 3000);
+    };
 
     const handleSearch = (e) => {
         if (e && typeof e.preventDefault === 'function') {
@@ -131,6 +165,116 @@ export default function Home() {
 
     return (
         <div>
+            {/* ===== PWA INSTALL MODAL ===== */}
+            {showInstallModal && (
+                <div className="fixed inset-0 z-[999] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                        className="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden"
+                    >
+                        {/* Modal header */}
+                        <div className="bg-gradient-to-br from-primary-600 to-primary-800 px-6 pt-8 pb-6 text-white text-center relative">
+                            <button
+                                onClick={() => setShowInstallModal(false)}
+                                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors"
+                            >
+                                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                            {/* App icon */}
+                            <div className="w-20 h-20 rounded-[22px] bg-white shadow-xl mx-auto mb-4 flex items-center justify-center">
+                                <span className="text-primary-600 font-black text-3xl">R</span>
+                            </div>
+                            <h3 className="text-xl font-black">Install Roomzy</h3>
+                            <p className="text-primary-200 text-sm mt-1">Add to your home screen for the best experience</p>
+                        </div>
+                        {/* Benefits */}
+                        <div className="px-6 py-5 space-y-3">
+                            {[
+                                { icon: '⚡', title: 'Instant Access', desc: 'Launch like a native app — no browser needed' },
+                                { icon: '📶', title: 'Works Offline', desc: 'Browse saved hostels without internet' },
+                                { icon: '🔔', title: 'Smart Alerts', desc: 'Get notified on booking updates instantly' },
+                            ].map(({ icon, title, desc }) => (
+                                <div key={title} className="flex items-start gap-3">
+                                    <span className="text-2xl">{icon}</span>
+                                    <div>
+                                        <p className="font-semibold text-gray-800 text-sm">{title}</p>
+                                        <p className="text-gray-500 text-xs mt-0.5">{desc}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        {/* Actions */}
+                        <div className="px-6 pb-6 space-y-2">
+                            <button
+                                onClick={handleInstallPwa}
+                                className="w-full h-12 rounded-2xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm transition-all active:scale-[0.98] shadow-lg shadow-primary-500/30"
+                            >
+                                {deferredPrompt ? '📲 Install Now' : 'Open in Chrome to Install'}
+                            </button>
+                            <button
+                                onClick={() => setShowInstallModal(false)}
+                                className="w-full h-10 rounded-2xl text-gray-400 hover:text-gray-600 font-medium text-sm transition-colors"
+                            >
+                                Maybe later
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+
+            {/* ===== APK DOWNLOAD BANNER ===== */}
+            {showApkBanner && (
+                <motion.div
+                    initial={{ y: -80, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 1.5, duration: 0.5, ease: 'easeOut' }}
+                    className="fixed top-0 left-0 right-0 z-[998] bg-gradient-to-r from-primary-700 via-primary-600 to-primary-700 shadow-xl"
+                    style={{ paddingTop: 'env(safe-area-inset-top)' }}
+                >
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-3 py-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                            <span className="text-2xl shrink-0">📱</span>
+                            <div className="min-w-0">
+                                <p className="text-white font-bold text-sm truncate">Get Roomzy on your phone!</p>
+                                <p className="text-primary-200 text-xs truncate hidden sm:block">Install the PWA or download Android APK directly</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                            <button
+                                onClick={() => setShowInstallModal(true)}
+                                className="h-8 px-4 rounded-xl bg-white text-primary-700 font-bold text-xs hover:bg-primary-50 transition-colors whitespace-nowrap"
+                            >
+                                Install PWA
+                            </button>
+                            <a
+                                href="/roomzy.apk"
+                                download
+                                onClick={handleApkDownload}
+                                className="h-8 px-4 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs transition-colors border border-white/20 whitespace-nowrap flex items-center gap-1"
+                            >
+                                {apkDownloading ? (
+                                    <><span className="animate-spin">⏳</span> Downloading...</>
+                                ) : (
+                                    <>⬇ APK</>
+                                )}
+                            </a>
+                            <button
+                                onClick={() => setShowApkBanner(false)}
+                                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+                                aria-label="Dismiss"
+                            >
+                                <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
             {/* ===== HERO SECTION ===== */}
             <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden bg-gray-900">
                 {/* Background Image with Blur & Overlays */}
@@ -600,85 +744,154 @@ export default function Home() {
             </section>
 
             {/* ===== TESTIMONIALS ===== */}
-            <section className="py-20">
+            <section className="py-20 bg-gray-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <ScrollReveal>
                         <div className="text-center mb-12">
                             <p className="text-primary-500 text-sm font-semibold uppercase tracking-wider mb-2">Student Stories</p>
                             <h2 className="text-3xl sm:text-4xl font-bold text-text-primary">What Students Say</h2>
+                            <p className="text-text-muted mt-3 max-w-lg mx-auto">Real reviews from verified students who stayed through Roomzy.</p>
                         </div>
                     </ScrollReveal>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {(testimonials.length > 0 ? testimonials : TESTIMONIALS).map((t, i) => (
-                            <ScrollReveal key={t.id} delay={i * 0.1}>
-                                <div className="bg-white rounded-2xl p-6 shadow-card border border-border-light hover:shadow-card-hover transition-shadow h-full flex flex-col">
-                                    <div className="flex items-center gap-1 mb-4">
-                                        {[1, 2, 3, 4, 5].map((s) => (
-                                            <FiStar
-                                                key={s}
-                                                size={14}
-                                                className={s <= t.rating ? 'text-amber-400 fill-amber-400' : 'text-gray-200'}
-                                            />
-                                        ))}
+                    {/* Loading skeletons */}
+                    {testimonialsLoading && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="bg-white rounded-2xl p-6 shadow-card border border-border-light animate-pulse">
+                                    <div className="flex gap-1 mb-4">{[1,2,3,4,5].map(s => <div key={s} className="w-3.5 h-3.5 rounded-full bg-gray-200" />)}</div>
+                                    <div className="space-y-2 flex-1 mb-5">
+                                        <div className="h-3 bg-gray-200 rounded w-full" />
+                                        <div className="h-3 bg-gray-200 rounded w-5/6" />
+                                        <div className="h-3 bg-gray-200 rounded w-4/6" />
                                     </div>
-                                    <p className="text-sm text-text-secondary leading-relaxed flex-1">&ldquo;{t.text}&rdquo;</p>
-                                    <div className="flex items-center gap-3 mt-5 pt-5 border-t border-border-light">
-                                        {t.avatar && (t.avatar.startsWith('http') || t.avatar.startsWith('/')) ? (
-                                            <img
-                                                src={t.avatar}
-                                                alt={t.name}
-                                                className="w-10 h-10 rounded-full object-cover shrink-0"
-                                            />
-                                        ) : (
-                                            <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-white text-xs font-bold shrink-0">
-                                                {t.avatar || t.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                                            </div>
-                                        )}
-                                        <div>
-                                            <p className="font-semibold text-sm text-text-primary">{t.name}</p>
-                                            <p className="text-xs text-text-muted">{t.university}</p>
+                                    <div className="flex items-center gap-3 pt-5 border-t border-gray-100">
+                                        <div className="w-10 h-10 rounded-full bg-gray-200 shrink-0" />
+                                        <div className="space-y-1.5">
+                                            <div className="h-3 bg-gray-200 rounded w-24" />
+                                            <div className="h-2.5 bg-gray-100 rounded w-16" />
                                         </div>
                                     </div>
                                 </div>
-                            </ScrollReveal>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Dynamic reviews from DB */}
+                    {!testimonialsLoading && testimonials.length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {testimonials.map((t, i) => (
+                                <ScrollReveal key={t.id || i} delay={i * 0.1}>
+                                    <div className="bg-white rounded-2xl p-6 shadow-card border border-border-light hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 h-full flex flex-col">
+                                        {/* Stars */}
+                                        <div className="flex items-center gap-1 mb-4">
+                                            {[1, 2, 3, 4, 5].map((s) => (
+                                                <FiStar
+                                                    key={s}
+                                                    size={14}
+                                                    className={s <= t.rating ? 'text-amber-400 fill-amber-400' : 'text-gray-200'}
+                                                />
+                                            ))}
+                                            <span className="ml-auto text-xs font-bold text-amber-500">{t.rating}.0</span>
+                                        </div>
+                                        {/* Hostel badge */}
+                                        {t.hostel && (
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-50 text-primary-600 text-[10px] font-semibold mb-3 w-fit">
+                                                🏠 {t.hostel}
+                                            </span>
+                                        )}
+                                        {/* Review text */}
+                                        <p className="text-sm text-text-secondary leading-relaxed flex-1">&ldquo;{t.text}&rdquo;</p>
+                                        {/* Author */}
+                                        <div className="flex items-center gap-3 mt-5 pt-5 border-t border-border-light">
+                                            {t.avatar && (t.avatar.startsWith('http') || t.avatar.startsWith('/')) ? (
+                                                <img src={t.avatar} alt={t.name} className="w-10 h-10 rounded-full object-cover shrink-0 ring-2 ring-primary-100" />
+                                            ) : (
+                                                <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-white text-xs font-bold shrink-0">
+                                                    {(t.name || 'S').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                                                </div>
+                                            )}
+                                            <div>
+                                                <p className="font-semibold text-sm text-text-primary">{t.name}</p>
+                                                <p className="text-xs text-text-muted">{t.university}</p>
+                                            </div>
+                                            <div className="ml-auto">
+                                                <span className="text-[10px] text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full">✓ Verified</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ScrollReveal>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Empty state — no approved reviews yet */}
+                    {!testimonialsLoading && testimonials.length === 0 && (
+                        <div className="text-center py-16">
+                            <div className="w-20 h-20 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-4">
+                                <FiStar size={32} className="text-primary-300" />
+                            </div>
+                            <h3 className="text-lg font-bold text-text-primary mb-2">No reviews yet</h3>
+                            <p className="text-text-muted text-sm max-w-sm mx-auto">Be the first to share your experience! Reviews from verified students will appear here after admin approval.</p>
+                            <Link to="/listings" className="inline-flex items-center gap-2 mt-6 px-6 py-2.5 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 transition-colors">
+                                Browse Hostels <FiArrowRight size={14} />
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </section>
 
             {/* ===== DOWNLOAD APP SECTION ===== */}
-            <section className="py-20 bg-[#0B1A30] text-white overflow-hidden relative">
-                {/* Decorative gradients */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary-500/10 rounded-full blur-[100px] pointer-events-none" />
+            <section className="py-24 bg-[#050D1A] text-white overflow-hidden relative">
+                {/* Multi-layered background glow */}
+                <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary-600/10 rounded-full blur-[120px] pointer-events-none" />
+                <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-blue-600/8 rounded-full blur-[100px] pointer-events-none" />
+                {/* Grid pattern overlay */}
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <div className="grid lg:grid-cols-2 gap-12 items-center">
+                    <div className="grid lg:grid-cols-2 gap-16 items-center">
                         <ScrollReveal direction="left">
                             <div className="text-center lg:text-left flex flex-col items-center lg:items-start">
-                                <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/10 text-primary-300 text-xs font-bold uppercase tracking-[0.15em] mb-6">
-                                    Roomzy Mobile
-                                </span>
-                                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
-                                    Take Roomzy <br /> Anywhere You Go
+                                {/* Badge */}
+                                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary-500/30 bg-primary-500/10 mb-6">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-primary-400 animate-pulse" />
+                                    <span className="text-primary-300 text-xs font-bold uppercase tracking-[0.15em]">Roomzy Mobile</span>
+                                </div>
+
+                                <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1]">
+                                    Take Roomzy<br />
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-blue-400">Anywhere</span>
                                 </h2>
-                                <p className="text-gray-300 text-base sm:text-lg mt-6 max-w-lg mx-auto lg:mx-0 leading-relaxed font-medium">
-                                    Find and manage your verified hostel stay from your smartphone. Install the Android application, run our Progressive Web App (PWA) on iOS, or download the app package directly.
+                                <p className="text-gray-400 text-base sm:text-lg mt-6 max-w-lg mx-auto lg:mx-0 leading-relaxed">
+                                    Find and book verified student hostels directly from your phone. Available as a PWA on any device, or as a native Android app.
                                 </p>
-                                
-                                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 mt-10">
+
+                                {/* Feature chips */}
+                                <div className="flex flex-wrap gap-2 mt-6 justify-center lg:justify-start">
+                                    {['Offline Support', 'Push Notifications', 'Real-time Booking', 'Secure Payments'].map(f => (
+                                        <span key={f} className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-gray-300 font-medium">{f}</span>
+                                    ))}
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3 mt-10 w-full">
                                     {/* Google Play Store Badge */}
                                     <a
                                         href="https://play.google.com/store"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="h-14 bg-black border border-white/10 hover:border-white/30 transition-all rounded-xl px-4 flex items-center gap-3 shadow-lg group hover:scale-[1.02]"
+                                        className="group flex items-center gap-3.5 h-[56px] bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 rounded-2xl px-5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-primary-500/10 min-w-[180px]"
                                     >
-                                        <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="currentColor">
-                                            <path d="M5,3.22V20.78c0,0.37,0.19,0.72,0.52,0.9l9.31-9.3L5.52,3.08C5.19,3.26,5,3.61,5,3.22z M15.65,11.66l2.83-2.83L6.96,2.2c-0.29-0.16-0.65-0.12-0.9,0.09L15.65,11.66z M16.36,12.38L6.06,22.68c0.25,0.21,0.61,0.25,0.9,0.09l11.52-6.65L16.36,12.38z M22.25,11.83l-3.2,1.85l-2.12-2.12l2.12-2.12l3.2,1.85c0.41,0.24,0.41,0.85,0,1.09z" />
+                                        {/* Colorful Google Play icon */}
+                                        <svg viewBox="0 0 24 24" className="w-7 h-7 shrink-0" fill="none">
+                                            <path d="M3.6 1.4L14.4 12 3.6 22.6A1.7 1.7 0 013 21.5V2.5c0-.45.22-.86.6-1.1z" fill="#EA4335"/>
+                                            <path d="M18.4 8.1l2.6 1.5c.74.43.74 1.37 0 1.8l-2.6 1.5L14.4 12l4-3.9z" fill="#FBBC04"/>
+                                            <path d="M3.6 1.4L14.4 12l-4 3.9-6.8-3.9L3.6 1.4z" fill="#4285F4"/>
+                                            <path d="M3.6 22.6L14.4 12l4 3.9-10.8 6.7z" fill="#34A853"/>
                                         </svg>
-                                        <div className="text-left leading-none">
-                                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Get it on</span>
-                                            <span className="text-sm font-extrabold text-white">Google Play</span>
+                                        <div className="leading-none text-left">
+                                            <span className="block text-[9px] text-gray-400 font-semibold uppercase tracking-wider">Get it on</span>
+                                            <span className="block text-[15px] font-bold text-white mt-0.5">Google Play</span>
                                         </div>
                                     </a>
 
@@ -687,70 +900,144 @@ export default function Home() {
                                         href="https://www.apple.com/app-store/"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="h-14 bg-black border border-white/10 hover:border-white/30 transition-all rounded-xl px-4 flex items-center gap-3 shadow-lg group hover:scale-[1.02]"
+                                        className="group flex items-center gap-3.5 h-[56px] bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 rounded-2xl px-5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-blue-500/10 min-w-[180px]"
                                     >
-                                        <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="currentColor">
+                                        {/* Apple icon */}
+                                        <svg viewBox="0 0 24 24" className="w-7 h-7 text-white shrink-0" fill="currentColor">
                                             <path d="M18.71,19.5C17.88,20.74,17,21.95,15.66,21.97C14.32,22,13.89,21.18,12.37,21.18C10.84,21.18,10.37,21.95,9.1,22C7.79,22.05,6.8,20.68,5.96,19.47C4.25,17,2.94,12.45,4.7,9.39C5.57,7.87,7.13,6.91,8.82,6.88C10.1,6.86,11.32,7.75,12.11,7.75C12.89,7.75,14.37,6.68,15.92,6.84C16.57,6.87,18.39,7.1,19.56,8.82C19.47,8.88,17.39,10.1,17.41,12.63C17.44,15.65,20.06,16.66,20.1,16.67C20.08,16.74,19.67,18.11,18.71,19.5M15.97,4.17C16.63,3.37,17.07,2.28,16.95,1C16,1.04,14.9,1.6,14.24,2.38C13.68,3.04,13.19,4.14,13.34,5.39C14.39,5.47,15.4,4.88,15.97,4.17Z" />
                                         </svg>
-                                        <div className="text-left leading-none">
-                                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Download on the</span>
-                                            <span className="text-sm font-extrabold text-white">App Store</span>
+                                        <div className="leading-none text-left">
+                                            <span className="block text-[9px] text-gray-400 font-semibold uppercase tracking-wider">Download on the</span>
+                                            <span className="block text-[15px] font-bold text-white mt-0.5">App Store</span>
                                         </div>
                                     </a>
 
-                                    {/* Direct APK Link */}
+                                    {/* PWA Install Button */}
+                                    {!pwaInstalled && (
+                                        <button
+                                            onClick={handleInstallPwa}
+                                            className="group flex items-center gap-3.5 h-[56px] bg-primary-600 hover:bg-primary-500 border border-primary-500 hover:border-primary-400 rounded-2xl px-5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary-500/20 min-w-[180px] cursor-pointer"
+                                            title={deferredPrompt ? 'Install Roomzy as an app' : 'Open in browser to install'}
+                                        >
+                                            {/* Globe/PWA icon */}
+                                            <svg viewBox="0 0 24 24" className="w-7 h-7 text-white shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8">
+                                                <circle cx="12" cy="12" r="10" />
+                                                <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" strokeLinecap="round" />
+                                                <path d="M12 16v-4M12 8h.01" strokeLinecap="round" />
+                                            </svg>
+                                            <div className="leading-none text-left">
+                                                <span className="block text-[9px] text-primary-200 font-semibold uppercase tracking-wider">
+                                                    {deferredPrompt ? 'Install Now' : 'Web App'}
+                                                </span>
+                                                <span className="block text-[15px] font-bold text-white mt-0.5">Install PWA</span>
+                                            </div>
+                                        </button>
+                                    )}
+                                    {pwaInstalled && (
+                                        <div className="flex items-center gap-2.5 h-[56px] px-5 rounded-2xl bg-green-500/10 border border-green-500/30 text-green-400">
+                                            <svg viewBox="0 0 24 24" className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <span className="text-sm font-bold">App Installed!</span>
+                                        </div>
+                                    )}
+
+                                    {/* Direct APK Download */}
                                     <a
-                                        href="/app-release.apk"
+                                        href="/roomzy.apk"
                                         download
-                                        className="h-14 bg-primary-600 hover:bg-primary-700 transition-all rounded-xl px-5 flex items-center gap-2.5 shadow-lg group hover:scale-[1.02]"
+                                        className="group flex items-center gap-3.5 h-[56px] bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 rounded-2xl px-5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg min-w-[180px]"
                                     >
-                                        <svg viewBox="0 0 24 24" className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                        <svg viewBox="0 0 24 24" className="w-6 h-6 text-white shrink-0" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12l-4.5 4.5M12 16.5l-4.5-4.5M12 3v13.5M4.5 19.5h15" />
                                         </svg>
-                                        <div className="text-left leading-none">
-                                            <span className="text-[10px] text-primary-200 font-bold uppercase tracking-wider block">Direct Install</span>
-                                            <span className="text-sm font-extrabold text-white">Download APK</span>
+                                        <div className="leading-none text-left">
+                                            <span className="block text-[9px] text-gray-400 font-semibold uppercase tracking-wider">Android APK</span>
+                                            <span className="block text-[15px] font-bold text-white mt-0.5">Download APK</span>
                                         </div>
                                     </a>
+                                </div>
+
+                                {/* Trust indicator */}
+                                <div className="flex items-center gap-3 mt-8 justify-center lg:justify-start">
+                                    <div className="flex -space-x-2">
+                                        {['AS', 'MK', 'ZA', 'FA'].map((initials, i) => (
+                                            <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 border-2 border-[#050D1A] flex items-center justify-center text-[8px] font-bold text-white">{initials}</div>
+                                        ))}
+                                    </div>
+                                    <p className="text-gray-400 text-xs"><span className="text-white font-semibold">500+</span> students using the app</p>
                                 </div>
                             </div>
                         </ScrollReveal>
 
-                        <ScrollReveal direction="right" className="hidden lg:flex justify-center relative">
-                            {/* App Screenshot Mockup Wrapper */}
-                            <div className="w-[280px] h-[540px] bg-slate-950 rounded-[2.5rem] border-8 border-slate-800 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] overflow-hidden relative flex flex-col">
-                                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-28 h-5 bg-slate-800 rounded-full z-20 flex items-center justify-center">
-                                    <div className="w-10 h-1 bg-slate-900 rounded-full" />
-                                </div>
-                                <div className="flex-1 bg-[#173663] p-4 pt-10 flex flex-col justify-between relative">
-                                    <div className="space-y-4">
-                                        <div className="h-5 w-14 bg-white/10 rounded-full" />
-                                        <h3 className="text-white font-extrabold text-xl leading-tight">Find, Book, <br /> & Stay</h3>
-                                        <div className="h-32 bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col justify-between">
-                                            <div className="flex justify-between items-start">
-                                                <div className="h-5 w-20 bg-white/20 rounded-md" />
-                                                <div className="h-5 w-6 bg-white/20 rounded-full" />
-                                            </div>
-                                            <div className="h-7 w-full bg-white rounded-lg flex items-center px-3 justify-between">
-                                                <span className="text-[9px] text-gray-400 font-bold">Search Abbottabad...</span>
-                                                <div className="w-4 h-4 rounded bg-[#173663]" />
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="space-y-2">
-                                            <div className="h-2 w-12 bg-white/20 rounded" />
-                                            <div className="flex gap-2">
-                                                <div className="h-16 w-1/2 bg-white/5 border border-white/10 rounded-xl" />
-                                                <div className="h-16 w-1/2 bg-white/5 border border-white/10 rounded-xl" />
-                                            </div>
+                        <ScrollReveal direction="right" className="hidden lg:flex justify-center items-center relative">
+                            {/* Glow ring behind phone */}
+                            <div className="absolute w-[320px] h-[320px] rounded-full bg-primary-500/15 blur-[60px]" />
+                            {/* Phone Frame */}
+                            <div className="relative w-[270px] h-[550px]">
+                                {/* Outer phone shell */}
+                                <div className="absolute inset-0 rounded-[3rem] bg-gradient-to-b from-slate-700 to-slate-900 shadow-[0_30px_80px_-10px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.1)] border border-slate-600" />
+                                {/* Screen bezel */}
+                                <div className="absolute inset-[10px] rounded-[2.3rem] bg-[#0A0F1E] overflow-hidden flex flex-col">
+                                    {/* Status bar */}
+                                    <div className="flex justify-between items-center px-5 pt-3 pb-1">
+                                        <span className="text-[9px] text-white/60 font-bold">9:41</span>
+                                        <div className="w-16 h-4 bg-slate-900 rounded-full" />
+                                        <div className="flex gap-1">
+                                            <div className="w-3 h-2 bg-white/30 rounded-sm" />
+                                            <div className="w-3 h-2 bg-white/30 rounded-sm" />
+                                            <div className="w-3 h-2 bg-white/30 rounded-sm" />
                                         </div>
                                     </div>
-                                    <div className="h-8 bg-white/10 rounded-xl flex items-center justify-around">
-                                        <div className="w-4 h-4 rounded-full bg-white/30" />
-                                        <div className="w-4 h-4 rounded-full bg-white/30" />
-                                        <div className="w-4 h-4 rounded-full bg-white/30" />
+                                    {/* App header */}
+                                    <div className="px-4 pt-2 pb-3 bg-gradient-to-b from-primary-900/80 to-transparent">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-1.5">
+                                                <div className="w-5 h-5 rounded-md bg-primary-500 flex items-center justify-center">
+                                                    <span className="text-[7px] font-black text-white">R</span>
+                                                </div>
+                                                <span className="text-white text-xs font-extrabold">Roomzy</span>
+                                            </div>
+                                            <div className="w-6 h-6 rounded-full bg-white/10" />
+                                        </div>
+                                        <h4 className="text-white font-bold text-sm">Find Your Hostel</h4>
+                                        {/* Search bar */}
+                                        <div className="mt-2 h-7 bg-white/10 rounded-lg flex items-center px-2.5 gap-1.5">
+                                            <div className="w-3 h-3 rounded-full border border-white/30" />
+                                            <span className="text-[9px] text-white/40">Search Abbottabad...</span>
+                                        </div>
+                                    </div>
+                                    {/* Hostel cards preview */}
+                                    <div className="flex-1 px-3 py-2 space-y-2 overflow-hidden">
+                                        {[['Premium Boys Hostel', 'Abbottabad', '4.9', '★', '#1a3a6b'], ['Girls Hostel Mansehra', 'Mansehra', '4.7', '★', '#1a3a4a'], ['University Inn', 'Abbottabad', '4.8', '★', '#1a2a5b']].map(([name, city, rating, star, bg], idx) => (
+                                            <div key={idx} className="h-[70px] rounded-xl overflow-hidden flex">
+                                                <div className="w-[70px] shrink-0" style={{ background: bg }} />
+                                                <div className="flex-1 bg-white/5 border border-white/5 rounded-r-xl px-2.5 py-1.5 flex flex-col justify-between">
+                                                    <span className="text-[8px] text-white font-bold line-clamp-1">{name}</span>
+                                                    <span className="text-[7px] text-white/50">{city}</span>
+                                                    <div className="flex items-center gap-1">
+                                                        <span className="text-amber-400 text-[8px]">{star}</span>
+                                                        <span className="text-[7px] text-white/70 font-bold">{rating}</span>
+                                                        <div className="ml-auto w-12 h-3.5 rounded-full bg-primary-500/80" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {/* Bottom nav */}
+                                    <div className="h-12 border-t border-white/5 flex items-center justify-around px-4">
+                                        {['⊞', '♥', '📋', '👤'].map((icon, i) => (
+                                            <div key={i} className={`flex flex-col items-center gap-0.5 ${i === 0 ? 'opacity-100' : 'opacity-30'}`}>
+                                                <span className="text-sm">{icon}</span>
+                                                {i === 0 && <div className="w-1 h-1 rounded-full bg-primary-400" />}
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
+                                {/* Side button details */}
+                                <div className="absolute right-[-3px] top-[100px] w-[3px] h-12 bg-slate-600 rounded-r-sm" />
+                                <div className="absolute left-[-3px] top-[80px] w-[3px] h-8 bg-slate-600 rounded-l-sm" />
+                                <div className="absolute left-[-3px] top-[100px] w-[3px] h-8 bg-slate-600 rounded-l-sm" />
                             </div>
                         </ScrollReveal>
                     </div>
