@@ -154,24 +154,111 @@ export default function ListHostel() {
         }));
     };
 
+    const validateStep = (step) => {
+        switch (step) {
+            case 1:
+                if (!formData.name.trim()) {
+                    toast.error('Property name is required');
+                    return false;
+                }
+                if (!formData.description.trim()) {
+                    toast.error('Description is required');
+                    return false;
+                }
+                if (formData.description.trim().length < 100) {
+                    toast.error(`Description must be at least 100 characters long (currently ${formData.description.trim().length} chars)`);
+                    return false;
+                }
+                break;
+            case 2:
+                if (!formData.city.trim()) {
+                    toast.error('City is required');
+                    return false;
+                }
+                if (!formData.area.trim()) {
+                    toast.error('Area is required');
+                    return false;
+                }
+                if (!formData.fullAddress.trim()) {
+                    toast.error('Full address is required');
+                    return false;
+                }
+                if (!formData.latitude || isNaN(Number(formData.latitude))) {
+                    toast.error('Please enter a valid Latitude number');
+                    return false;
+                }
+                if (!formData.longitude || isNaN(Number(formData.longitude))) {
+                    toast.error('Please enter a valid Longitude number');
+                    return false;
+                }
+                break;
+            case 3:
+                // Facilities are optional on the backend
+                break;
+            case 4:
+                if (tempImages.length < 4) {
+                    toast.error(`Please upload at least 4 photos for the hostel gallery (currently ${tempImages.length} uploaded)`);
+                    return false;
+                }
+                break;
+            case 5:
+                if (!formData.startingPrice || isNaN(Number(formData.startingPrice)) || Number(formData.startingPrice) <= 0) {
+                    toast.error('Please enter a valid monthly starting rent greater than 0');
+                    return false;
+                }
+                break;
+            default:
+                break;
+        }
+        return true;
+    };
+
     const nextStep = () => {
-        setCurrentStep(prev => Math.min(prev + 1, STEPS.length));
+        if (validateStep(currentStep)) {
+            setCurrentStep(prev => Math.min(prev + 1, STEPS.length));
+        }
     };
 
     const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
     const handleSubmit = async () => {
+        // Validate all steps before submitting
+        for (let step = 1; step <= STEPS.length; step++) {
+            if (!validateStep(step)) {
+                setCurrentStep(step);
+                return;
+            }
+        }
+
         setLoading(true);
+        const toastId = toast.loading('Uploading images...');
+        
         try {
             const uploadedUrls = [];
-            for (const file of tempImages) {
+            for (let i = 0; i < tempImages.length; i++) {
+                const file = tempImages[i];
                 const uploadData = new FormData();
                 uploadData.append('image', file);
-                const res = await api.post('/hostels/image', uploadData, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
-                uploadedUrls.push(res.data?.data?.imageUrl);
+                
+                toast.loading(`Uploading image ${i + 1} of ${tempImages.length}...`, { id: toastId });
+                
+                try {
+                    const res = await api.post('/hostels/image', uploadData, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                    const url = res.data?.data?.imageUrl;
+                    if (!url) {
+                        throw new Error('Image URL is missing in response');
+                    }
+                    uploadedUrls.push(url);
+                } catch (uploadErr) {
+                    console.error(`Error uploading image #${i + 1}:`, uploadErr);
+                    const serverMsg = uploadErr.response?.data?.message;
+                    throw new Error(`Image #${i + 1} (${file.name}) failed to upload: ${serverMsg || uploadErr.message}`);
+                }
             }
+
+            toast.loading('Saving hostel listing...', { id: toastId });
 
             const payload = {
                 ...formData,
@@ -188,13 +275,15 @@ export default function ListHostel() {
             };
 
             await api.post('/hostels', payload);
-            toast.success('Hostel submitted successfully!');
+            toast.success('Hostel submitted successfully!', { id: toastId });
             navigate('/dashboard/owner');
         } catch (error) {
             console.error('Submit error:', error);
             const errRes = error.response?.data?.message;
-            const message = Array.isArray(errRes) ? errRes[0] : (errRes || 'Failed to submit hostel');
-            toast.error(message);
+            const message = Array.isArray(errRes) 
+                ? errRes.join(', ') 
+                : (errRes || error.message || 'Failed to submit hostel');
+            toast.error(message, { id: toastId });
         } finally {
             setLoading(false);
         }
