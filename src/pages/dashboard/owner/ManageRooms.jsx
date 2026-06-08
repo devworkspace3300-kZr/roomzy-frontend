@@ -192,8 +192,9 @@ export default function ManageRooms() {
 
             toast.loading('Saving room specification...', { id: toastId });
 
+            const { isActive, ...roomForm } = form;
             const payload = {
-                ...form,
+                ...roomForm,
                 hostelId,
                 floorNumber: form.floorNumber ? Number(form.floorNumber) : undefined,
                 totalBeds: Number(form.totalBeds),
