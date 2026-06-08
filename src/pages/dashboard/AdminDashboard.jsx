@@ -135,6 +135,10 @@ export default function AdminDashboard() {
     // Student Reviews States & Handlers
     const [reviews, setReviews] = useState([]);
     const [loadingReviews, setLoadingReviews] = useState(false);
+    const [selectedReviewForEdit, setSelectedReviewForEdit] = useState(null);
+    const [isEditReviewModalOpen, setIsEditReviewModalOpen] = useState(false);
+    const [editReviewForm, setEditReviewForm] = useState({ title: '', body: '', overall_rating: 5 });
+    const [updatingReviewText, setUpdatingReviewText] = useState(false);
 
     const fetchReviews = async () => {
         setLoadingReviews(true);
@@ -167,6 +171,42 @@ export default function AdminDashboard() {
             fetchReviews();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to reject review');
+        }
+    };
+
+    const handleDeleteReview = async (reviewId) => {
+        if (!window.confirm('Are you sure you want to delete this review from the system? This will also update the hostel average rating.')) return;
+        try {
+            await api.delete(`/reviews/${reviewId}`);
+            toast.success('Review deleted successfully');
+            fetchReviews();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to delete review');
+        }
+    };
+
+    const handleOpenEditReviewModal = (review) => {
+        setSelectedReviewForEdit(review);
+        setEditReviewForm({
+            title: review.title || '',
+            body: review.body || '',
+            overall_rating: Number(review.overall_rating || 5)
+        });
+        setIsEditReviewModalOpen(true);
+    };
+
+    const handleUpdateReviewSubmit = async (e) => {
+        e.preventDefault();
+        setUpdatingReviewText(true);
+        try {
+            await api.patch(`/reviews/${selectedReviewForEdit.id}`, editReviewForm);
+            toast.success('Review updated successfully');
+            setIsEditReviewModalOpen(false);
+            fetchReviews();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to update review');
+        } finally {
+            setUpdatingReviewText(false);
         }
     };
 
@@ -1775,24 +1815,38 @@ export default function AdminDashboard() {
                                                 })()}
                                             </span>
                                             
-                                            {review.status === 'pending' ? (
-                                                <div className="flex gap-2 w-full md:w-auto">
-                                                    <button
-                                                        onClick={() => handleRejectReview(review.id)}
-                                                        className="px-4 py-2 border border-gray-100 text-[10px] font-black text-gray-500 hover:text-red-600 hover:bg-red-50 hover:border-red-100 rounded-xl uppercase tracking-widest transition-all"
-                                                    >
-                                                        Reject
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleApproveReview(review.id)}
-                                                        className="px-4 py-2 bg-[#0B1A30] text-white text-[10px] font-black hover:bg-gray-800 rounded-xl uppercase tracking-widest shadow-md transition-all"
-                                                    >
-                                                        Approve
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-100">Moderated</span>
-                                            )}
+                                            <div className="flex items-center gap-2">
+                                                {review.status === 'pending' && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleRejectReview(review.id)}
+                                                            className="px-3 py-1.5 border border-gray-100 text-[9px] font-black text-gray-500 hover:text-red-600 hover:bg-red-50 hover:border-red-100 rounded-lg uppercase tracking-widest transition-all"
+                                                        >
+                                                            Reject
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleApproveReview(review.id)}
+                                                            className="px-3 py-1.5 bg-[#0B1A30] text-white text-[9px] font-black hover:bg-gray-800 rounded-lg uppercase tracking-widest shadow-md transition-all"
+                                                        >
+                                                            Approve
+                                                        </button>
+                                                    </>
+                                                )}
+                                                <button
+                                                    onClick={() => handleOpenEditReviewModal(review)}
+                                                    className="p-2 text-gray-400 hover:text-[#0B1A30] hover:bg-[#0B1A30]/5 rounded-xl transition-all"
+                                                    title="Edit Review"
+                                                >
+                                                    <FiEdit2 size={14} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteReview(review.id)}
+                                                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                    title="Delete Review"
+                                                >
+                                                    <FiTrash2 size={14} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -1940,6 +1994,90 @@ export default function AdminDashboard() {
                                     </button>
                                 </div>
                             </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Edit Review Modal */}
+            <AnimatePresence>
+                {isEditReviewModalOpen && selectedReviewForEdit && (
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsEditReviewModalOpen(false)}
+                            className="absolute inset-0 bg-[#0B1A30]/60 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl relative z-10 overflow-hidden"
+                        >
+                            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                                <div>
+                                    <h3 className="text-xl font-[900] text-[#0B1A30]">Edit Review</h3>
+                                    <p className="text-xs text-gray-500 font-medium mt-0.5">Moderator override mode</p>
+                                </div>
+                                <button onClick={() => setIsEditReviewModalOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-gray-500 hover:bg-gray-300 transition-colors">
+                                    <FiX size={16} />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleUpdateReviewSubmit} className="p-6 space-y-5">
+                                <div>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 block">Overall Rating Override</label>
+                                    <div className="flex gap-2">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <button
+                                                key={star}
+                                                type="button"
+                                                onClick={() => setEditReviewForm({ ...editReviewForm, overall_rating: star })}
+                                                className={`text-3xl transition-all hover:scale-125 ${editReviewForm.overall_rating >= star ? 'text-amber-400' : 'text-gray-200'}`}
+                                            >★</button>
+                                        ))}
+                                        <span className="ml-2 text-sm font-black text-[#0B1A30] self-center">{editReviewForm.overall_rating}/5</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Review Title</label>
+                                    <input
+                                        type="text"
+                                        value={editReviewForm.title}
+                                        onChange={e => setEditReviewForm({ ...editReviewForm, title: e.target.value })}
+                                        className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:border-[#0B1A30]/20 font-medium text-sm text-[#0B1A30]"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Review Body</label>
+                                    <textarea
+                                        rows="4"
+                                        value={editReviewForm.body}
+                                        onChange={e => setEditReviewForm({ ...editReviewForm, body: e.target.value })}
+                                        className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:border-[#0B1A30]/20 font-medium text-sm text-[#0B1A30] resize-none"
+                                        required
+                                    />
+                                </div>
+                                <div className="flex gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsEditReviewModalOpen(false)}
+                                        className="flex-1 py-4 border border-gray-200 text-gray-400 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-all"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={updatingReviewText}
+                                        className="flex-1 py-4 bg-[#0B1A30] text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-gray-800 transition-all shadow-lg disabled:opacity-50"
+                                    >
+                                        {updatingReviewText ? 'Saving...' : 'Save Changes'}
+                                    </button>
+                                </div>
+                            </form>
                         </motion.div>
                     </div>
                 )}

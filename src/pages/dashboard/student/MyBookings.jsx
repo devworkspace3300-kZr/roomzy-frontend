@@ -303,22 +303,9 @@ export default function MyBookings({ noLayout = false }) {
                                             )}
 
                                             {booking.status === 'approved' && (
-                                                <>
-                                                    <Link
-                                                        to="/dashboard/student"
-                                                        state={{ activeTab: 'messages', targetOwnerId: booking.hostel?.ownerId, hostelName: booking.hostel?.name, initialMessage: `Hi! My booking for ${booking.hostel?.name} was approved. I'd like to arrange payment of PKR ${booking.monthlyPrice?.toLocaleString()}.` }}
-                                                        onClick={e => e.stopPropagation()}
-                                                        className="flex items-center gap-1.5 px-4 py-2 bg-[#0B1A30] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-800 transition-all shadow-sm"
-                                                    >
-                                                        <FiPhone size={12} /> Contact Owner
-                                                    </Link>
-                                                    <button
-                                                        onClick={e => { e.stopPropagation(); handlePayNow(booking.id); }}
-                                                        className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition-all shadow-sm"
-                                                    >
-                                                        Simulate Payment
-                                                    </button>
-                                                </>
+                                                <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 text-[10px] font-black rounded-xl border border-blue-100">
+                                                    <FiAlertCircle size={12} /> Awaiting physical payment & owner confirmation
+                                                </span>
                                             )}
 
                                             {(['completed', 'active_stay', 'confirmed'].includes(booking.status) && !booking.hasReview) && (
@@ -404,16 +391,15 @@ export default function MyBookings({ noLayout = false }) {
 
                                 {/* Approved Payment Notice */}
                                 {selectedBooking.status === 'approved' && (
-                                    <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl">
-                                        <p className="text-[11px] font-black text-emerald-900 uppercase tracking-widest mb-2">Booking Approved — Choose Payment Method</p>
-                                        <p className="text-xs text-emerald-700 font-medium leading-relaxed">
-                                            <strong>Pay Physically:</strong> Pay PKR {selectedBooking.monthlyPrice?.toLocaleString()} directly to the owner.<br />
-                                            <strong>Pay Online:</strong> Simulate online payment below.
+                                    <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl">
+                                        <p className="text-[11px] font-black text-blue-900 uppercase tracking-widest mb-2">Booking Approved — Physical Payment Required</p>
+                                        <p className="text-xs text-blue-700 font-medium leading-relaxed">
+                                            Please make physical payment of PKR {selectedBooking.monthlyPrice?.toLocaleString()} directly to the hostel owner. Once they receive it, they will confirm your booking.
                                         </p>
                                         {selectedBooking.hostel?.owner?.phone && (
-                                            <div className="mt-3 pt-3 border-t border-emerald-100">
-                                                <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Owner Contact</p>
-                                                <p className="text-sm font-black text-emerald-900 mt-0.5">{selectedBooking.hostel.owner.phone}</p>
+                                            <div className="mt-3 pt-3 border-t border-blue-100">
+                                                <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Owner Contact Number</p>
+                                                <p className="text-sm font-black text-blue-900 mt-0.5">{selectedBooking.hostel.owner.phone}</p>
                                             </div>
                                         )}
                                     </div>
@@ -472,22 +458,9 @@ export default function MyBookings({ noLayout = false }) {
                                     )}
 
                                     {selectedBooking.status === 'approved' && (
-                                        <>
-                                            <Link
-                                                to="/dashboard/student"
-                                                state={{ activeTab: 'messages', targetOwnerId: selectedBooking.hostel?.ownerId, hostelName: selectedBooking.hostel?.name }}
-                                                onClick={() => setSelectedBooking(null)}
-                                                className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#0B1A30] text-white text-[11px] font-black uppercase tracking-wider rounded-2xl hover:bg-gray-800 transition-all shadow-md"
-                                            >
-                                                <FiMessageSquare size={14} /> Message Owner
-                                            </Link>
-                                            <button
-                                                onClick={() => { handlePayNow(selectedBooking.id); setSelectedBooking(null); }}
-                                                className="flex-1 py-3 bg-emerald-600 text-white text-[11px] font-black uppercase tracking-wider rounded-2xl hover:bg-emerald-700 transition-all shadow-md"
-                                            >
-                                                Simulate Payment
-                                            </button>
-                                        </>
+                                        <div className="w-full text-center py-3 text-xs font-black uppercase tracking-widest text-blue-700 bg-blue-50 border border-blue-100 rounded-xl">
+                                            Awaiting physical payment & owner confirmation
+                                        </div>
                                     )}
 
                                     {(['completed', 'active_stay', 'confirmed'].includes(selectedBooking.status) && !selectedBooking.hasReview) && (
