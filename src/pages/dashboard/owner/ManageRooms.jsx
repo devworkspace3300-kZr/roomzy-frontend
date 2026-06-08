@@ -31,7 +31,6 @@ const EMPTY_FORM = {
     hasAttachedBathroom: false,
     hasAc: false,
     description: '',
-    isActive: true,
     images: []
 };
 
@@ -111,7 +110,6 @@ export default function ManageRooms() {
             hasAttachedBathroom: room.hasAttachedBathroom || false,
             hasAc: room.hasAc || false,
             description: room.description || '',
-            isActive: room.isActive,
             images: room.images?.map(img => img.imageUrl) || []
         });
         setTempImages([]);
@@ -192,9 +190,8 @@ export default function ManageRooms() {
 
             toast.loading('Saving room specification...', { id: toastId });
 
-            const { isActive, ...roomForm } = form;
             const payload = {
-                ...roomForm,
+                ...form,
                 hostelId,
                 floorNumber: form.floorNumber ? Number(form.floorNumber) : undefined,
                 totalBeds: Number(form.totalBeds),

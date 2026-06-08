@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FiCalendar, FiMapPin, FiClock, FiCheck, FiX, FiAlertCircle,
-    FiFilter, FiSearch, FiStar, FiPhone, FiHome, FiDollarSign,
-    FiArrowRight, FiMessageSquare, FiDownload
+    FiSearch, FiStar, FiArrowRight
 } from 'react-icons/fi';
 import { LuBed } from 'react-icons/lu';
 import DashboardLayout from '../../../components/layout/DashboardLayout';
@@ -90,35 +89,7 @@ export default function MyBookings({ noLayout = false }) {
         }
     };
 
-    const handlePayNow = async (bookingId) => {
-        toast((t) => (
-            <div className="flex flex-col gap-3">
-                <span className="font-[900] text-[#0B1A30] uppercase text-xs tracking-wider">Payment Simulation 🚀</span>
-                <span className="text-[11px] text-gray-500 font-medium leading-relaxed">
-                    Simulate online checkout? This will immediately confirm the booking and update payment records.
-                </span>
-                <div className="flex gap-2 justify-end mt-2">
-                    <button onClick={() => toast.dismiss(t.id)} className="px-3.5 py-2 bg-gray-50 border border-gray-200 text-gray-400 text-[9px] font-black uppercase tracking-wider rounded-lg">Cancel</button>
-                    <button
-                        onClick={async () => {
-                            toast.dismiss(t.id);
-                            const loadingToast = toast.loading('Processing payment...');
-                            try {
-                                await api.post(`/payments/simulate/${bookingId}`);
-                                toast.dismiss(loadingToast);
-                                toast.success('Payment successful! Booking confirmed! 🎉', { duration: 4000 });
-                                api.get('/bookings/my').then(res => setBookings(res.data?.data || [])).catch(() => {});
-                            } catch (err) {
-                                toast.dismiss(loadingToast);
-                                toast.error(err.response?.data?.message || 'Failed to simulate payment');
-                            }
-                        }}
-                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[9px] font-black uppercase tracking-wider rounded-lg"
-                    >Simulate Payment</button>
-                </div>
-            </div>
-        ), { duration: 15000, position: 'top-center', style: { borderRadius: '24px', padding: '24px', width: '360px', maxWidth: '90vw' } });
-    };
+
 
     const filteredBookings = bookings.filter(b => {
         const matchesStatus = statusFilter === 'all' || b.status === statusFilter;
