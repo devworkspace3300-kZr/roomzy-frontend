@@ -41,7 +41,7 @@ export default function Home() {
         if (isCapacitor || isStandalone) {
             setIsAppMode(true);
             setPwaInstalled(true);
-            setShowApkBanner(false);
+            setShowPwaBanner(false);
         }
 
         // Check if browser has related apps installed
@@ -50,7 +50,7 @@ export default function Home() {
                 if (apps && apps.length > 0) {
                     setIsAppMode(true);
                     setPwaInstalled(true);
-                    setShowApkBanner(false);
+                    setShowPwaBanner(false);
                 }
             }).catch(err => console.error("Error checking installed related apps:", err));
         }
