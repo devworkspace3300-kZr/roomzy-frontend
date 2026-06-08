@@ -119,31 +119,78 @@ export default function ManageRooms() {
         setShowForm(true);
     };
 
+    const validateForm = () => {
+        if (!form.roomType) {
+            toast.error('Room category is required');
+            return false;
+        }
+        if (form.floorNumber && isNaN(Number(form.floorNumber))) {
+            toast.error('Floor number must be a valid number');
+            return false;
+        }
+        if (!form.totalBeds || isNaN(Number(form.totalBeds)) || Number(form.totalBeds) < 1) {
+            toast.error('Physical Bed Count must be at least 1');
+            return false;
+        }
+        if (!form.pricePerMonth || isNaN(Number(form.pricePerMonth)) || Number(form.pricePerMonth) < 0) {
+            toast.error('Monthly Rent must be a valid positive number');
+            return false;
+        }
+        if (form.securityDeposit && isNaN(Number(form.securityDeposit))) {
+            toast.error('Security Deposit must be a valid number');
+            return false;
+        }
+        
+        // Total images count check (previously uploaded urls + new tempImages files)
+        const totalImagesCount = (editingRoom ? form.images.length : 0) + tempImages.length;
+        if (totalImagesCount < 2) {
+            toast.error(`Please upload at least 2 photos for the room gallery (currently ${totalImagesCount} selected)`);
+            return false;
+        }
+        return true;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!validateForm()) return;
+
         setSubmitting(true);
+        const toastId = toast.loading('Uploading room images...');
+        
         try {
             // 1. Upload new images if any
             let uploadedUrls = editingRoom ? [...form.images] : [];
             
             if (tempImages.length > 0) {
-                for (const file of tempImages) {
+                for (let i = 0; i < tempImages.length; i++) {
+                    const file = tempImages[i];
                     const uploadData = new FormData();
                     uploadData.append('image', file);
-                    const res = await api.post('/hostels/image', uploadData, {
-                        headers: { 'Content-Type': 'multipart/form-data' }
-                    });
-                    if (res.data?.data?.imageUrl) {
-                        uploadedUrls.push(res.data.data.imageUrl);
+                    
+                    toast.loading(`Uploading room image ${i + 1} of ${tempImages.length}...`, { id: toastId });
+                    
+                    try {
+                        const res = await api.post('/hostels/image', uploadData, {
+                            headers: { 'Content-Type': 'multipart/form-data' }
+                        });
+                        const url = res.data?.data?.imageUrl;
+                        if (!url) {
+                            throw new Error('Image URL is missing in response');
+                        }
+                        uploadedUrls.push(url);
+                    } catch (uploadErr) {
+                        console.error(`Error uploading room image #${i + 1}:`, uploadErr);
+                        const serverMsg = uploadErr.response?.data?.message;
+                        throw new Error(`Room image #${i + 1} (${file.name}) failed to upload: ${serverMsg || uploadErr.message}`);
                     }
                 }
             }
 
             if (uploadedUrls.length < 2) {
-                toast.error('Minimum 2 images required for room');
-                setSubmitting(false);
-                return;
+                throw new Error('Minimum 2 images required for room listing');
             }
+
+            toast.loading('Saving room specification...', { id: toastId });
 
             const payload = {
                 ...form,
@@ -157,16 +204,20 @@ export default function ManageRooms() {
 
             if (editingRoom) {
                 await api.patch(`/rooms/${editingRoom.id}`, payload);
-                toast.success('Room updated!');
+                toast.success('Room specifications updated!', { id: toastId });
             } else {
                 await api.post('/rooms', payload);
-                toast.success('Room added successfully!');
+                toast.success('Room added successfully to inventory!', { id: toastId });
             }
             setShowForm(false);
             fetchData();
         } catch (err) {
             console.error('Submit error:', err);
-            toast.error(err.response?.data?.message || 'Failed to save room');
+            const errRes = err.response?.data?.message;
+            const message = Array.isArray(errRes) 
+                ? errRes.join(', ') 
+                : (errRes || err.message || 'Failed to save room');
+            toast.error(message, { id: toastId });
         } finally {
             setSubmitting(false);
         }
@@ -207,9 +258,22 @@ export default function ManageRooms() {
                         <FiArrowLeft size={22} />
                     </button>
                     <div>
-                        <h2 className="text-3xl font-black text-[#0B1A30] tracking-tighter">
-                            Manage Inventory
-                        </h2>
+                        <div className="flex flex-wrap items-center gap-3">
+                            <h2 className="text-3xl font-black text-[#0B1A30] tracking-tighter">
+                                Manage Inventory
+                            </h2>
+                            {hostel && (
+                                <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider ${
+                                    hostel.status === 'verified'
+                                        ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                                        : hostel.status === 'rejected'
+                                        ? 'bg-red-50 text-red-500 border border-red-200'
+                                        : 'bg-amber-50 text-amber-600 border border-amber-200'
+                                }`}>
+                                    {hostel.status}
+                                </span>
+                            )}
+                        </div>
                         <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mt-1">
                             {hostel?.name || 'Loading Property Information...'}
                         </p>
@@ -218,7 +282,12 @@ export default function ManageRooms() {
                         {!showForm && (
                             <Button
                                 onClick={openAddForm}
-                                className="bg-[#0B1A30] hover:bg-gray-800 shadow-xl shadow-[#0B1A30]/20 w-full md:w-auto"
+                                disabled={hostel?.status !== 'verified'}
+                                className={`shadow-xl w-full md:w-auto ${
+                                    hostel?.status === 'verified'
+                                        ? 'bg-[#0B1A30] hover:bg-gray-800 shadow-[#0B1A30]/20'
+                                        : 'bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed'
+                                }`}
                                 size="lg"
                             >
                                 <FiPlusCircle className="mr-2" /> Add New Room
@@ -226,6 +295,21 @@ export default function ManageRooms() {
                         )}
                     </div>
                 </div>
+
+                {/* Verification Warning Alert */}
+                {hostel && hostel.status !== 'verified' && (
+                    <div className="bg-amber-50 border-2 border-amber-200/60 rounded-[2rem] p-8 flex items-start gap-5 text-amber-900 shadow-sm animate-fade-in">
+                        <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-600 shrink-0 shadow-inner">
+                            <FiShield size={24} />
+                        </div>
+                        <div className="space-y-1">
+                            <h4 className="text-base font-black uppercase tracking-tight text-amber-950">Property Verification Required</h4>
+                            <p className="text-sm text-amber-800/80 leading-relaxed font-semibold">
+                                Your hostel listing status is currently <span className="underline font-bold">{hostel.status}</span>. Under platform guidelines, rooms can only be added to fully verified properties. Once our administration team completes the inspection and approves your hostel, you will be authorized to publish rooms and accept student bookings.
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 {/* Add/Edit Form */}
                 <AnimatePresence>
