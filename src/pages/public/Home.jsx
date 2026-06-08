@@ -27,8 +27,7 @@ export default function Home() {
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [pwaInstalled, setPwaInstalled] = useState(false);
     const [showInstallModal, setShowInstallModal] = useState(false);
-    const [showApkBanner, setShowApkBanner] = useState(true);
-    const [apkDownloading, setApkDownloading] = useState(false);
+    const [showPwaBanner, setShowPwaBanner] = useState(false);
     const [isAppMode, setIsAppMode] = useState(false);
 
     useEffect(() => {
@@ -139,9 +138,14 @@ export default function Home() {
         const handleBeforeInstallPrompt = (e) => {
             e.preventDefault();
             setDeferredPrompt(e);
+            // Show banner after a small delay if not already installed
+            setTimeout(() => setShowPwaBanner(true), 2500);
         };
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-        window.addEventListener('appinstalled', () => setPwaInstalled(true));
+        window.addEventListener('appinstalled', () => {
+            setPwaInstalled(true);
+            setShowPwaBanner(false);
+        });
 
         // Fetch testimonials from DB
         api.get('/reviews/public/testimonials')
@@ -160,6 +164,7 @@ export default function Home() {
     const handleInstallPwa = async () => {
         if (deferredPrompt) {
             setShowInstallModal(false);
+            setShowPwaBanner(false);
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
             if (outcome === 'accepted') setPwaInstalled(true);
@@ -167,11 +172,6 @@ export default function Home() {
         } else {
             setShowInstallModal(false);
         }
-    };
-
-    const handleApkDownload = () => {
-        setApkDownloading(true);
-        setTimeout(() => setApkDownloading(false), 3000);
     };
 
     const handleSearch = (e) => {
@@ -284,44 +284,37 @@ export default function Home() {
                 </div>
             )}
 
-            {/* ===== APK DOWNLOAD BANNER ===== */}
-            {showApkBanner && !isAppMode && (
+            {/* ===== PWA INSTALL BANNER (only when not installed & not in app mode) ===== */}
+            {showPwaBanner && !isAppMode && !pwaInstalled && (
                 <motion.div
                     initial={{ y: -80, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 1.5, duration: 0.5, ease: 'easeOut' }}
+                    exit={{ y: -80, opacity: 0 }}
+                    transition={{ duration: 0.45, ease: 'easeOut' }}
                     className="fixed top-0 left-0 right-0 z-[998] bg-gradient-to-r from-primary-700 via-primary-600 to-primary-700 shadow-xl"
                     style={{ paddingTop: 'env(safe-area-inset-top)' }}
                 >
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-3 py-3">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-3 py-2.5">
                         <div className="flex items-center gap-3 min-w-0">
-                            <span className="text-2xl shrink-0">📱</span>
+                            <div className="w-8 h-8 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center shrink-0">
+                                <svg viewBox="0 0 24 24" className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+                                </svg>
+                            </div>
                             <div className="min-w-0">
-                                <p className="text-white font-bold text-sm truncate">Get Roomzy on your phone!</p>
-                                <p className="text-primary-200 text-xs truncate hidden sm:block">Install the PWA or download Android APK directly</p>
+                                <p className="text-white font-bold text-sm leading-tight">Install Roomzy App</p>
+                                <p className="text-primary-200 text-xs leading-tight hidden sm:block">Add to home screen for instant access — no app store needed</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                             <button
                                 onClick={() => setShowInstallModal(true)}
-                                className="h-8 px-4 rounded-xl bg-white text-primary-700 font-bold text-xs hover:bg-primary-50 transition-colors whitespace-nowrap"
+                                className="h-8 px-4 rounded-xl bg-white text-primary-700 font-bold text-xs hover:bg-primary-50 active:scale-95 transition-all whitespace-nowrap shadow-sm"
                             >
-                                Install PWA
+                                Install
                             </button>
-                            <a
-                                href="/roomzy.apk"
-                                download
-                                onClick={handleApkDownload}
-                                className="h-8 px-4 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs transition-colors border border-white/20 whitespace-nowrap flex items-center gap-1"
-                            >
-                                {apkDownloading ? (
-                                    <><span className="animate-spin">⏳</span> Downloading...</>
-                                ) : (
-                                    <>⬇ APK</>
-                                )}
-                            </a>
                             <button
-                                onClick={() => setShowApkBanner(false)}
+                                onClick={() => setShowPwaBanner(false)}
                                 className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
                                 aria-label="Dismiss"
                             >
@@ -923,7 +916,7 @@ export default function Home() {
                                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-blue-400">Anywhere</span>
                                 </h2>
                                 <p className="text-gray-400 text-base sm:text-lg mt-6 max-w-lg mx-auto lg:mx-0 leading-relaxed">
-                                    Find and book verified student hostels directly from your phone. Available as a PWA on any device, or as a native Android app.
+                                    Find and book verified student hostels directly from your phone. Install as a PWA on any device — no app store needed.
                                 </p>
 
                                 {/* Feature chips */}
@@ -935,7 +928,7 @@ export default function Home() {
 
                                 <div className="flex flex-col sm:flex-row items-stretch justify-center lg:justify-start gap-4 mt-10 w-full max-w-xl lg:max-w-none">
                                     {/* PWA Install Button */}
-                                    {!pwaInstalled && (
+                                    {!pwaInstalled ? (
                                         <button
                                             onClick={() => setShowInstallModal(true)}
                                             className="group flex items-center gap-4 h-[64px] bg-primary-600 hover:bg-primary-500 border-2 border-primary-400/60 hover:border-primary-300 rounded-2xl px-6 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-primary-500/30 flex-1 min-w-[200px] cursor-pointer"
@@ -952,37 +945,17 @@ export default function Home() {
                                                 <span className="block text-[17px] font-black text-white mt-1">Install PWA App</span>
                                             </div>
                                         </button>
-                                    )}
-                                    {pwaInstalled && (
+                                    ) : (
                                         <div className="flex items-center gap-3 h-[64px] px-6 rounded-2xl bg-green-500/10 border-2 border-green-500/30 text-green-400 flex-1 min-w-[200px]">
                                             <svg viewBox="0 0 24 24" className="w-7 h-7 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                             <div className="leading-none">
-                                                <span className="block text-[10px] font-bold uppercase tracking-widest text-green-500">Installed</span>
+                                                <span className="block text-[10px] font-bold uppercase tracking-widest text-green-500">Installed ✓</span>
                                                 <span className="block text-[17px] font-black mt-1">App Ready!</span>
                                             </div>
                                         </div>
                                     )}
-
-                                    {/* Direct APK Download */}
-                                    <a
-                                        href="/roomzy.apk"
-                                        download="roomzy.apk"
-                                        className="group flex items-center gap-4 h-[64px] bg-white/5 hover:bg-white/12 border-2 border-white/12 hover:border-[#3ddc84]/40 rounded-2xl px-6 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-xl flex-1 min-w-[200px]"
-                                    >
-                                        {/* Android robot icon */}
-                                        <svg viewBox="0 0 24 24" className="w-8 h-8 shrink-0" fill="#3ddc84">
-                                            <path d="M17.523 15.341A5.522 5.522 0 0 0 18 13H6a5.522 5.522 0 0 0 .477 2.341l-1.2 1.2a.75.75 0 1 0 1.06 1.06l1.094-1.094A5.5 5.5 0 0 0 12 17.5a5.5 5.5 0 0 0 4.569-2.993l1.094 1.094a.75.75 0 0 0 1.06-1.06l-1.2-1.2zM9.5 13.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5zm5 0a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5zM7.5 9.5l-1.25-2.165a.75.75 0 1 1 1.3-.75L8.8 8.75A6.47 6.47 0 0 1 12 8a6.47 6.47 0 0 1 3.2.75l1.25-2.165a.75.75 0 1 1 1.3.75L16.5 9.5A6.494 6.494 0 0 1 18.5 13H5.5A6.494 6.494 0 0 1 7.5 9.5z"/>
-                                        </svg>
-                                        <div className="leading-none text-left flex-1">
-                                            <span className="block text-[10px] text-gray-400 font-bold uppercase tracking-widest">Android — Free download</span>
-                                            <span className="block text-[17px] font-black text-white mt-1">Download APK</span>
-                                        </div>
-                                        <svg viewBox="0 0 24 24" className="w-5 h-5 text-gray-500 group-hover:text-[#3ddc84] transition-colors shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 16l-4-4m4 4l4-4M12 3v13M4.5 20h15" />
-                                        </svg>
-                                    </a>
                                 </div>
 
                                 {/* Trust indicator */}
