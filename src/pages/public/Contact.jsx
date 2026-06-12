@@ -268,14 +268,6 @@ export default function Contact() {
                         </div>
                     </div>
 
-                    {/* Support Pathways (Newly Rendered) */}
-                    <div className="text-center mb-10">
-                        <ScrollReveal>
-                            <p className="text-primary-500 text-xs font-black uppercase tracking-[0.2em] mb-2">Support Tracks</p>
-                            <h2 className="text-3xl font-black text-[#0B1A30] tracking-tight">Tailored Assistance For Everyone</h2>
-                        </ScrollReveal>
-                    </div>
-
 
                 </div>
             </section>
