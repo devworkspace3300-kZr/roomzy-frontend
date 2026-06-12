@@ -24,6 +24,7 @@ export default function Settings() {
         phone: user?.phone || '',
         city: user?.city || '',
         email: user?.email || '',
+        gender: user?.gender || '',
     });
 
     useEffect(() => {
@@ -33,6 +34,7 @@ export default function Settings() {
                 phone: user.phone || '',
                 city: user.city || '',
                 email: user.email || '',
+                gender: user.gender || '',
             });
             if (user.profileImageUrl) {
                 setImagePreview(user.profileImageUrl);
@@ -77,6 +79,7 @@ export default function Settings() {
                 fullName: formData.fullName,
                 phone: formData.phone,
                 city: formData.city,
+                gender: formData.gender,
                 profileImageUrl: imageUrl
             });
 
@@ -207,8 +210,24 @@ export default function Settings() {
                                                 type="text"
                                                 value={formData.city}
                                                 onChange={(e) => setFormData({...formData, city: e.target.value})}
-                                                className="w-full pl-12 pr-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-[#0B1A30] focus:ring-4 focus:ring-[#0B1A30]/5 focus:border-[#0B1A30] focus:bg-white transition-all outline-none"
+                                                className="w-full pl-12 pr-5 py-4 bg-gray-50 border border-gray-150 rounded-2xl text-sm font-bold text-[#0B1A30] focus:ring-4 focus:ring-[#0B1A30]/5 focus:border-[#0B1A30] focus:bg-white transition-all outline-none"
                                             />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Gender</label>
+                                        <div className="relative group">
+                                            <select
+                                                value={formData.gender}
+                                                onChange={(e) => setFormData({...formData, gender: e.target.value})}
+                                                className="w-full px-5 py-4 bg-gray-50 border border-gray-150 rounded-2xl text-sm font-bold text-[#0B1A30] focus:ring-4 focus:ring-[#0B1A30]/5 focus:border-[#0B1A30] focus:bg-white transition-all outline-none appearance-none cursor-pointer"
+                                                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1.25rem center', backgroundSize: '1rem' }}
+                                            >
+                                                <option value="">Select Gender</option>
+                                                <option value="male">Male</option>
+                                                <option value="female">Female</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>

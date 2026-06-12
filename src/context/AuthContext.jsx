@@ -20,7 +20,19 @@ export function AuthProvider({ children }) {
     if (storedToken && storedUser) {
       try {
         setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+
+        // Auto refresh user details on mount to sync profile/gender
+        api.get('/auth/me')
+          .then(res => {
+            const data = res.data;
+            if (data.success && data.data) {
+              setUser(data.data);
+              localStorage.setItem('roomzy_user', JSON.stringify(data.data));
+            }
+          })
+          .catch(err => console.error('Auto refresh failed on mount:', err));
       } catch {
         // Corrupted data — clear it
         localStorage.removeItem('roomzy_token');
