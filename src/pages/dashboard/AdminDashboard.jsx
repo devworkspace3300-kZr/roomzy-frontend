@@ -793,6 +793,19 @@ export default function AdminDashboard() {
                                                     <div>
                                                         <p className="font-black text-[#0B1A30] tracking-tight">{u.fullName}</p>
                                                         <p className="text-xs text-gray-400 font-bold">{u.email}</p>
+                                                        {u.phone && (
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <span className="text-xs text-gray-500 font-bold">{u.phone}</span>
+                                                                <a 
+                                                                    href={`https://wa.me/${u.phone.replace(/[^0-9]/g, '').startsWith('03') ? '923' + u.phone.replace(/[^0-9]/g, '').slice(2) : u.phone.replace(/[^0-9]/g, '')}`}
+                                                                    target="_blank" 
+                                                                    rel="noopener noreferrer" 
+                                                                    className="text-[10px] font-black uppercase text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded-md tracking-wider transition-colors"
+                                                                >
+                                                                    WhatsApp
+                                                                </a>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </td>

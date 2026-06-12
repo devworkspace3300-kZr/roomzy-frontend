@@ -181,8 +181,24 @@ export default function HostelDetails() {
                                 )}
                                 <div className="flex items-center gap-1.5">
                                     <FiMapPin size={15} />
-                                    <span>{hostel.fullAddress || `${hostel.area}, ${hostel.city}`}</span>
+                                    <span>{hostel.area ? `${hostel.area}, ` : ''}{hostel.city}</span>
                                 </div>
+                                {hostel.owner?.phone && (
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-gray-300">|</span>
+                                        <a href={`tel:${hostel.owner.phone}`} className="flex items-center gap-1 text-xs font-bold text-[#0B1A30] hover:text-[#0B1A30]/80">
+                                            📞 {hostel.owner.phone}
+                                        </a>
+                                        <a 
+                                            href={`https://wa.me/${hostel.owner.phone.replace(/[^0-9]/g, '').startsWith('03') ? '923' + hostel.owner.phone.replace(/[^0-9]/g, '').slice(2) : hostel.owner.phone.replace(/[^0-9]/g, '')}`}
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            className="flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700"
+                                        >
+                                            WhatsApp
+                                        </a>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -367,14 +383,34 @@ export default function HostelDetails() {
                                         <p className="text-sm font-medium">Map coordinates not available</p>
                                     </div>
                                 )}
-                                <div className="p-6 bg-white flex items-start gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center text-primary-600 shrink-0">
-                                        <FiMapPin size={22} />
+                                <div className="p-6 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center text-primary-600 shrink-0">
+                                            <FiMapPin size={22} />
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-text-primary">{hostel.name}</p>
+                                            <p className="text-sm text-text-muted mt-1">{hostel.area ? `${hostel.area}, ` : ''}{hostel.city}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="font-bold text-text-primary">{hostel.area}, {hostel.city}</p>
-                                        <p className="text-sm text-text-muted leading-relaxed mt-1">{hostel.fullAddress}</p>
-                                    </div>
+                                    {hostel.owner?.phone && (
+                                        <div className="flex items-center gap-2">
+                                            <a 
+                                                href={`tel:${hostel.owner.phone}`}
+                                                className="px-4 py-2.5 bg-gray-50 hover:bg-gray-100 border border-border rounded-xl text-xs font-bold text-text-primary transition-colors"
+                                            >
+                                                📞 Call
+                                            </a>
+                                            <a 
+                                                href={`https://wa.me/${hostel.owner.phone.replace(/[^0-9]/g, '').startsWith('03') ? '923' + hostel.owner.phone.replace(/[^0-9]/g, '').slice(2) : hostel.owner.phone.replace(/[^0-9]/g, '')}`}
+                                                target="_blank" 
+                                                rel="noopener noreferrer" 
+                                                className="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-150 rounded-xl text-xs font-bold text-emerald-700 transition-colors"
+                                            >
+                                                WhatsApp
+                                            </a>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -447,23 +483,40 @@ export default function HostelDetails() {
                                 </p>
                             )}
 
-                            {/* Owner Info */}
                             {hostel.owner && (
-                                <div className="pt-4 border-t border-border-light">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center overflow-hidden">
-                                            {hostel.owner.profileImageUrl
-                                                ? <img src={hostel.owner.profileImageUrl} alt="" className="w-full h-full object-cover" />
-                                                : <FiUser size={20} className="text-primary-500" />
-                                            }
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold text-sm">{hostel.owner.fullName}</p>
-                                            <p className="text-xs text-text-muted">Property Owner</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                                 <div className="pt-4 border-t border-border-light space-y-3">
+                                     <div className="flex items-center gap-3">
+                                         <div className="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center overflow-hidden">
+                                             {hostel.owner.profileImageUrl
+                                                 ? <img src={hostel.owner.profileImageUrl} alt="" className="w-full h-full object-cover" />
+                                                 : <FiUser size={20} className="text-primary-500" />
+                                             }
+                                         </div>
+                                         <div>
+                                             <p className="font-semibold text-sm">{hostel.owner.fullName}</p>
+                                             <p className="text-xs text-text-muted">Property Owner</p>
+                                         </div>
+                                     </div>
+                                     {hostel.owner.phone && (
+                                         <div className="flex items-center gap-2">
+                                             <a
+                                                 href={`tel:${hostel.owner.phone}`}
+                                                 className="flex-1 text-center py-2 bg-gray-50 border border-border text-xs font-bold rounded-xl text-text-primary hover:bg-gray-100 transition-colors"
+                                             >
+                                                 📞 Call
+                                             </a>
+                                             <a
+                                                 href={`https://wa.me/${hostel.owner.phone.replace(/[^0-9]/g, '').startsWith('03') ? '923' + hostel.owner.phone.replace(/[^0-9]/g, '').slice(2) : hostel.owner.phone.replace(/[^0-9]/g, '')}`}
+                                                 target="_blank"
+                                                 rel="noopener noreferrer"
+                                                 className="flex-1 text-center py-2 bg-emerald-50 border border-emerald-100 text-xs font-bold rounded-xl text-emerald-700 hover:bg-emerald-100 transition-colors"
+                                             >
+                                                 WhatsApp
+                                             </a>
+                                         </div>
+                                     )}
+                                 </div>
+                             )}
                         </div>
                     </div>
                 </div>
