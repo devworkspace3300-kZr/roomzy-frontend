@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { FiTarget, FiHeart, FiGlobe, FiUsers, FiShield, FiAward, FiCheckCircle } from 'react-icons/fi';
 import { STATS } from '../../constants';
 import ScrollReveal from '../../components/shared/ScrollReveal';
+import Counter from '../../components/ui/Counter';
 
 export default function About() {
     const values = [
@@ -148,7 +149,9 @@ export default function About() {
                         {STATS.map((stat, i) => (
                             <ScrollReveal key={stat.label} delay={i * 0.1}>
                                 <div className="text-center">
-                                    <p className="text-4xl sm:text-5xl font-black gradient-text mb-2 tracking-tight">{stat.value}</p>
+                                    <p className="text-4xl sm:text-5xl font-black gradient-text mb-2 tracking-tight">
+                                        <Counter value={stat.value} />
+                                    </p>
                                     <p className="text-text-muted text-sm font-semibold uppercase tracking-widest">{stat.label}</p>
                                 </div>
                             </ScrollReveal>

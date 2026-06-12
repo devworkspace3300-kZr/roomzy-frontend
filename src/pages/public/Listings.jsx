@@ -240,6 +240,30 @@ export default function Listings() {
                 </select>
             </div>
 
+            {/* Hostel Gender */}
+            <div>
+                <label className="block text-sm font-bold text-[#0B1A30] mb-3">Hostel Gender</label>
+                <div className="space-y-3">
+                    {[
+                        { id: '', name: 'All Hostels' },
+                        { id: 'boys_only', name: 'Boys Only' },
+                        { id: 'girls_only', name: 'Girls Only' },
+                    ].map((g) => (
+                        <label key={g.id} className="flex items-center gap-3 cursor-pointer group">
+                            <input 
+                                type="radio" 
+                                name="genderType" 
+                                value={g.id} 
+                                checked={filters.genderType === g.id} 
+                                onChange={() => updateFilter('genderType', g.id)} 
+                                className="w-5 h-5 text-primary-500 border-gray-200 focus:ring-primary-200 transition-all cursor-pointer" 
+                            />
+                            <span className="text-sm font-medium text-gray-500 group-hover:text-[#0B1A30] transition-colors">{g.name}</span>
+                        </label>
+                    ))}
+                </div>
+            </div>
+
             {/* Price Range */}
             <div>
                 <label className="block text-sm font-bold text-[#0B1A30] mb-3">Price Range</label>

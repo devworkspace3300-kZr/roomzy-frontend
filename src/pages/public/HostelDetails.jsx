@@ -64,6 +64,26 @@ export default function HostelDetails() {
     const handleBook = async () => {
         if (!isAuthenticated) { navigate('/login'); return; }
         if (!isStudent) { toast.error('Only students can make bookings'); return; }
+
+        const studentGender = user?.profile?.gender || user?.gender;
+        if (!studentGender) {
+            toast.error('Please complete your profile details and set your gender in Settings before booking.');
+            return;
+        }
+
+        const hostelGender = hostel?.genderType;
+        if (studentGender && hostelGender) {
+            const sG = studentGender.toLowerCase();
+            if (sG === 'male' && hostelGender === 'girls_only') {
+                toast.error('Male students cannot book in a girls-only hostel.');
+                return;
+            }
+            if (sG === 'female' && hostelGender === 'boys_only') {
+                toast.error('Female students cannot book in a boys-only hostel.');
+                return;
+            }
+        }
+
         if (!selectedRoom) { toast.error('Please select a room first'); return; }
         if (!moveInDate) { toast.error('Please select a move-in date'); return; }
         setBooking(true);

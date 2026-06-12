@@ -394,7 +394,6 @@ export default function MyBookings({ noLayout = false }) {
                                         { label: 'Move-in Date', value: formatDate(selectedBooking.moveInDate) },
                                         { label: 'Duration', value: `${selectedBooking.durationMonths} month${selectedBooking.durationMonths > 1 ? 's' : ''}` },
                                         { label: 'Monthly Rent', value: `PKR ${selectedBooking.monthlyPrice?.toLocaleString() || '—'}` },
-                                        { label: 'Hostel Gender', value: selectedBooking.hostel?.gender ? (selectedBooking.hostel.gender.charAt(0).toUpperCase() + selectedBooking.hostel.gender.slice(1)) : '—' },
                                         { label: 'Requested On', value: formatDate(selectedBooking.createdAt, { day: 'numeric', month: 'short', year: 'numeric' }) },
                                     ].map((item, i) => (
                                         <div key={i} className="bg-gray-50 rounded-xl p-4">

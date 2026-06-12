@@ -9,6 +9,7 @@ import HostelCard from '../../components/ui/HostelCard';
 import Button from '../../components/ui/Button';
 import ScrollReveal from '../../components/shared/ScrollReveal';
 import { HostelCardSkeleton } from '../../components/shared/SkeletonLoader';
+import Counter from '../../components/ui/Counter';
 
 export default function Home() {
     const [searchCity, setSearchCity] = useState('');
@@ -457,7 +458,9 @@ export default function Home() {
                         >
                             {STATS.map((stat) => (
                                 <div key={stat.label} className="text-center flex flex-col items-center">
-                                    <p className="text-3xl sm:text-4xl font-bold text-white drop-shadow-sm">{stat.value}</p>
+                                    <p className="text-3xl sm:text-4xl font-bold text-white drop-shadow-sm">
+                                        <Counter value={stat.value} />
+                                    </p>
                                     <p className="text-sm sm:text-base text-gray-400 font-medium mt-1 uppercase tracking-wider">{stat.label}</p>
                                 </div>
                             ))}
