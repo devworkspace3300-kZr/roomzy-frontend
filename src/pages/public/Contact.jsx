@@ -276,43 +276,7 @@ export default function Contact() {
                         </ScrollReveal>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                        {supportTracks.map((track, idx) => {
-                            const TrackIcon = track.icon;
-                            return (
-                                <ScrollReveal key={idx} delay={idx * 0.12}>
-                                    <div className="p-8 rounded-[2.5rem] bg-white border border-gray-150 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full group hover:border-primary-100">
-                                        <div className="space-y-4">
-                                            <div className="w-14 h-14 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                                                <TrackIcon size={26} />
-                                            </div>
-                                            <h3 className="text-xl font-bold text-text-primary group-hover:text-primary-600 transition-colors">{track.title}</h3>
-                                            <p className="text-sm text-text-muted leading-relaxed font-medium">{track.desc}</p>
-                                        </div>
-                                        <div className="mt-8 pt-4 border-t border-gray-50">
-                                            {track.path.startsWith('#') ? (
-                                                <a
-                                                    href={track.path}
-                                                    className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary-600 hover:text-primary-700 transition-colors"
-                                                >
-                                                    {track.btnText}
-                                                    <FiArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                                                </a>
-                                            ) : (
-                                                <a
-                                                    href={track.path}
-                                                    className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary-600 hover:text-primary-700 transition-colors"
-                                                >
-                                                    {track.btnText}
-                                                    <FiArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                                                </a>
-                                            )}
-                                        </div>
-                                    </div>
-                                </ScrollReveal>
-                            );
-                        })}
-                    </div>
+
                 </div>
             </section>
         </div>
